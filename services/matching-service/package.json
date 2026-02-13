@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx watch src/app.ts",
     "build": "tsc",
-    "start": "node dist/app.ts",
+    "start": "node dist/app.js",
     "lint": "eslint src/",
     "lint:fix": "eslint --fix src/"
   },
@@ -28,6 +28,7 @@
     "@types/node": "^25.2.1",
     "@typescript-eslint/eslint-plugin": "^8.55.0",
     "eslint": "^9.39.2",
+    "tsx": "^4.21.0",
     "typescript": "^5.9.3",
     "typescript-eslint": "^8.55.0"
   }
