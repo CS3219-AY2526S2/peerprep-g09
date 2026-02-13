@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "tsx watch src/app.ts",
     "build": "tsc",
-    "start": "node dist/app.ts"
+    "start": "node dist/app.ts",
+    "lint": "eslint src/",
+    "lint:fix": "eslint --fix src/"
   },
   "keywords": [],
   "author": "",
@@ -20,9 +22,12 @@
     "socket.io": "^4.8.3"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^25.2.1",
-    "typescript": "^5.9.3"
+    "eslint": "^10.0.0",
+    "typescript": "^5.9.3",
+    "typescript-eslint": "^8.55.0"
   }
 }
