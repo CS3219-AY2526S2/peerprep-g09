@@ -6,6 +6,7 @@
 
 @theme {
   --color-main-beige: #C7B0B0;
+  --color-header-font: #FFFFFF;
 }
 
 @theme inline {

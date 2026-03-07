@@ -2,26 +2,26 @@ import Link from 'next/link'
 
 export function PublicHeader() {
     return (
-        <div className="px-6 py-6 sticky top-0 bg-main-beige max-w h-20 flex justify-between">
+        <div className="text-header-font px-6 py-6 sticky top-0 bg-main-beige max-w h-20 flex justify-between">
             <div className="flex gap-4">
-                <Link href="/">
+                <Link href="/" className="hover:opacity-70">
                     Peerprep
                 </Link>
-                <Link href="/">
+                <Link href="/" className="hover:opacity-70">
                     Features
                 </Link>
-                <Link href="/">
+                <Link href="/" className="hover:opacity-70">
                     Learn more
                 </Link>
-                <Link href="/">
+                <Link href="/" className="hover:opacity-70">
                     Dummy
                 </Link>
             </div>
             <div className="flex gap-4">
-                <Link href="/login">
+                <Link href="/login" className="hover:opacity-70">
                     Log in
                 </Link>
-                <Link href="/signup">
+                <Link href="/signup" className="hover:opacity-70">
                     Signup
                 </Link>
             </div>
