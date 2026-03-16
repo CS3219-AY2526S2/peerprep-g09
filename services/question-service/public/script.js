@@ -1,3 +1,4 @@
+
 const tokenInput = document.getElementById("token");
 const difficultyFilterInput = document.getElementById("difficultyFilter");
 const topicFilterInput = document.getElementById("topicFilter");
@@ -8,6 +9,8 @@ const resetFormButton = document.getElementById("resetFormButton");
 const questionsList = document.getElementById("questionsList");
 const statusMessage = document.getElementById("statusMessage");
 
+let allowedTopics = [];
+let allowedDifficulties = [];
 const formFields = {
   questionId: document.getElementById("questionId"),
   title: document.getElementById("title"),
@@ -30,6 +33,63 @@ const getHeaders = () => ({
   Authorization: `Bearer ${tokenInput.value.trim()}`,
 });
 
+const fetchTopics = async () => {
+  const response = await fetch("/api/questions/metadata/topics");
+  
+  if (!response.ok) {
+    throw new Error("Failed to load topics");
+  }
+  
+  return response.json();
+}
+
+const fetchDifficulties = async () => {
+  const response = await fetch("/api/questions/metadata/difficulties");
+  
+  if (!response.ok) {
+    throw new Error("Failed to load difficulties");
+  }
+  
+  return response.json();
+}
+
+const renderTopicOptions = () => {
+  topicFilterInput.innerHTML = `
+    <option value="">All</option>
+    ${allowedTopics.map((topic) => `<option value="${topic}">${topic}</option>`).join("")}
+  `;
+
+  formFields.topics.innerHTML = allowedTopics.map(
+    (topic) => `<option value="${topic}">${topic}</option>`
+  ).join("");
+};
+
+const renderDifficultyOptions = () => {
+  difficultyFilterInput.innerHTML = `
+    <option value="">All</option>
+    ${allowedDifficulties
+      .map((difficulty) => `<option value="${difficulty}">${difficulty}</option>`)
+      .join("")}
+  `;
+
+  formFields.difficulty.innerHTML = allowedDifficulties
+    .map((difficulty) => `<option value="${difficulty}">${difficulty}</option>`)
+    .join("");
+};
+
+const initializeMetadata = async () => {
+  try {
+    allowedTopics = await fetchTopics();
+    allowedDifficulties = await fetchDifficulties();
+
+    renderTopicOptions();
+    renderDifficultyOptions();
+    resetForm();
+  } catch (error) {
+    setStatus(error.message, true);
+  }
+};
+
 const buildQueryString = () => {
   const params = new URLSearchParams();
 
@@ -51,6 +111,9 @@ const resetForm = () => {
   });
 
   formFields.difficulty.value = "easy";
+  Array.from(formFields.topics.options).forEach((option) => {
+    option.selected = false;
+  });
 };
 
 const getPayloadFromForm = () => {
@@ -64,10 +127,7 @@ const getPayloadFromForm = () => {
     title: formFields.title.value,
     description: formFields.description.value,
     difficulty: formFields.difficulty.value,
-    topics: formFields.topics.value
-      .split(",")
-      .map((topic) => topic.trim())
-      .filter(Boolean),
+    topics: Array.from(formFields.topics.selectedOptions).map((option) => option.value),
     constraints: formFields.constraints.value
       .split("\n")
       .map((constraint) => constraint.trim())
@@ -83,7 +143,9 @@ const populateForm = (question) => {
   formFields.title.value = question.title || "";
   formFields.description.value = question.description || "";
   formFields.difficulty.value = question.difficulty || "easy";
-  formFields.topics.value = (question.topics || []).join(", ");
+  Array.from(formFields.topics.options).forEach((option) => {
+    option.selected = (question.topics || []).includes(option.value);
+  });
   formFields.constraints.value = (question.constraints || []).join("\n");
   formFields.examples.value = JSON.stringify(question.examples || [], null, 2);
   formFields.sourceUrl.value = question.sourceUrl || "";
@@ -245,4 +307,4 @@ seedQuestionsButton.addEventListener("click", seedQuestions);
 saveQuestionButton.addEventListener("click", saveQuestion);
 resetFormButton.addEventListener("click", resetForm);
 
-resetForm();
+initializeMetadata();

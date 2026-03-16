@@ -1,4 +1,5 @@
-const ALLOWED_DIFFICULTIES = ["easy", "medium", "hard"];
+import ALLOWED_TOPICS from "../constants/topics.js";
+import ALLOWED_DIFFICULTIES from "../constants/difficulties.js"
 
 const normalizeTopics = (topics) => {
   if (!Array.isArray(topics)) {
@@ -9,6 +10,9 @@ const normalizeTopics = (topics) => {
     .map((topic) => String(topic).trim().toLowerCase())
     .filter(Boolean);
 };
+
+const hasOnlyAllowedTopics = (topics) =>
+  topics.every((topic) => ALLOWED_TOPICS.includes(topic));
 
 const normalizeExamples = (examples) => {
   if (!Array.isArray(examples)) {
@@ -47,8 +51,12 @@ class QuestionValidator {
     }
 
     if (!partial || payload.topics !== undefined) {
-      if (normalizeTopics(payload.topics).length === 0) {
+      const normalizedTopics = normalizeTopics(payload.topics);
+
+      if (normalizedTopics.length === 0) {
         errors.push("topics must contain at least one topic.");
+      } else if (!hasOnlyAllowedTopics(normalizedTopics)) {
+        errors.push(`topics must be chosen from the allowed list: ${ALLOWED_TOPICS.join(", ")}.`);
       }
     }
 

@@ -3,6 +3,8 @@ import firebaseApp from "../config/firebase.js";
 import { verifyAdmin, verifyAuthenticated } from "../middleware/authMiddleware.js";
 import QuestionValidator from "../utils/validation.js";
 import sampleQuestions from "../sample_data/sampleQuestions.js";
+import ALLOWED_DIFFICULTIES from "../constants/difficulties.js";
+import ALLOWED_TOPICS from "../constants/topics.js";
 
 const router = express.Router();
 const questionsCollection = firebaseApp.db.collection("questions");
@@ -34,7 +36,13 @@ router.get("/", verifyAuthenticated, async (req, res) => {
     res.status(500).json({ error: "Failed to fetch questions." });
   }
 });
+router.get("/metadata/difficulties", async (req, res) => {
+    res.status(200).json(ALLOWED_DIFFICULTIES);
+});
 
+router.get("/metadata/topics", async (req, res) => {
+    res.status(200).json(ALLOWED_TOPICS);
+});
 router.get("/:id", verifyAuthenticated, async (req, res) => {
   try {
     const doc = await questionsCollection.doc(req.params.id).get();
@@ -143,5 +151,6 @@ router.post("/seed", verifyAdmin, async (req, res) => {
     res.status(500).json({ error: "Failed to seed sample questions." });
   }
 });
+
 
 export default router;
