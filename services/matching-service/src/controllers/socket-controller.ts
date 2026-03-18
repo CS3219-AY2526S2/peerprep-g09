@@ -1,9 +1,20 @@
 import axios from "axios";
 import redis from "../services/redisService.js";
+import { Server, Socket } from "socket.io";
 
 const userSockets = new Map<string, string>();
 
-export const handleJoinQueue = async (io: any, socket: any, data: any) => {
+interface MatchRequestData {
+  userId: string;
+  category: string;
+  difficulty: string;
+}
+
+export const handleJoinQueue = async (
+  io: Server,
+  socket: Socket,
+  data: MatchRequestData,
+) => {
   const { userId, category, difficulty } = data;
   const queueKey = `queue:${category}:${difficulty}`;
 
@@ -66,7 +77,7 @@ export const handleLeaveQueue = async (userId: string) => {
   userSockets.delete(userId);
 };
 
-export const handleDisconnect = async (socket: any) => {
+export const handleDisconnect = async (socket: Socket) => {
   for (const [userId, socketId] of userSockets.entries()) {
     if (socketId === socket.id) {
       userSockets.delete(userId);
@@ -88,7 +99,7 @@ const fetchQuestion = async (category: string, difficulty: string) => {
       },
     );
     return res.data;
-  } catch (err) {
+  } catch {
     return { title: "Generic Coding Question", id: "default" };
   }
 };
