@@ -1,12 +1,11 @@
 import { LoginForm } from "@/components/login-form";
-import { PublicHeader } from "@/components/public-header";
 
 export default function Page() {
   return (
-    <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
-      <div className="w-full max-w-sm">
+    <div className="flex h-screen justify-center gap-x-6 p-20">
+      <main className="flex w-full max-w-md flex-col gap-y-10">
         <LoginForm />
-      </div>
+      </main>
     </div>
   );
 }

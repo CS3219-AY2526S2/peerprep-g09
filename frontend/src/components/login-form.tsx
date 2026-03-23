@@ -19,6 +19,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import { PeerprepLogo } from "./peerprep-logo";
 
 export function LoginForm({
   className,
@@ -73,6 +74,9 @@ export function LoginForm({
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
+      <div className="flex justify-center">
+        <PeerprepLogo />
+      </div>
       <Card>
         <CardHeader>
           <CardTitle>Login to your account</CardTitle>
@@ -130,7 +134,11 @@ export function LoginForm({
                 />
               </Field>
               <Field>
-                <Button type="submit" disabled={isLoading} className="w-full">
+                <Button
+                  type="submit"
+                  disabled={isLoading}
+                  className="hover:bg-main-beige bg-main-beige w-full hover:opacity-90"
+                >
                   {isLoading ? "Logging in..." : "Login"}
                 </Button>
                 {/* <Button
