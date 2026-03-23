@@ -20,7 +20,7 @@ export default function Lobby() {
       <TabPages />
       <div className="flex-1 flex-col gap-y-2 border">
         <p>recent interviews</p>
-        <hr className="min-w-screen border"></hr>
+        <hr className="w-full border"></hr>
       </div>
     </div>
   );
