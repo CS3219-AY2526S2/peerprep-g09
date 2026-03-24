@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PeerPrep | Collaborative Workspace</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <header id="navbar">
+        <div class="logo">PeerPrep G09</div>
+        <div class="actions">
+            <button id="run-btn">▶ Run Code</button>
+            <span id="connection-status" class="status-offline">Offline</span>
+        </div>
+    </header>
+
+    <main id="workspace">
+        <section id="question-panel">
+            <div class="panel-content">
+                <h2>1. Two Sum</h2>
+                <p class="difficulty easy">Easy</p>
+                <div class="description">
+                    <p>Given an array of integers <code>nums</code> and an integer <code>target</code>, return indices of the two numbers such that they add up to <code>target</code>.</p>
+                    <p>You may assume that each input would have exactly one solution, and you may not use the same element twice.</p>
+                </div>
+            </div>
+        </section>
+
+        <section id="editor-panel">
+            <div id="editor-container"></div>
+        </section>
+    </main>
+
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>
