@@ -1,7 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import userRoutes from './routes/user-routes.js';
-import { purgeUnverifiedUsers, initCleanupCron } from './tasks/cleanup.js';
+import { initCleanupCron } from './tasks/cleanup.js';
 
 const app = express();
 

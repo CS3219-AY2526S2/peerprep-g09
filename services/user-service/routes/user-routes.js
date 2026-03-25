@@ -64,7 +64,6 @@ router.post('/login', async (req, res) => {
 
 router.post('/register', async (req, res) => {
     const { email, password } = req.body;
-    console.log(process.env.EMAIL_PASS,process.env.EMAIL_USER)
 
     if (!Validator.validateEmail(email)) {
         return res.status(400).json({ error: "Invalid email format." });
