@@ -1,15 +1,18 @@
 {
-  "name": "collaboration-service",
+  "name": "frontend",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "",
+  "main": "script.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "type": "commonjs",
   "dependencies": {
-    "express": "^5.2.1"
+    "express": "^5.2.1",
+    "monaco-editor": "^0.55.1",
+    "socket.io": "^4.8.3"
   }
 }
