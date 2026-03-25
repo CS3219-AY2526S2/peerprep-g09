@@ -21,7 +21,7 @@ app.use('/api/users/promote-user',
     verifyToken,  
     verifyAdmin,   
     createProxyMiddleware({ 
-        target: 'http://localhost:8080', 
+        target: USER_SERVICE, 
         changeOrigin: true,
         pathRewrite: (path, req) => req.originalUrl 
     })

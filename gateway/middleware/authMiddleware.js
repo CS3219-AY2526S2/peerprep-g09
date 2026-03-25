@@ -1,4 +1,3 @@
-// gateway/middleware/auth.js
 import admin from 'firebase-admin';
 import { createRequire } from 'module';
 const require = createRequire(import.meta.url);
