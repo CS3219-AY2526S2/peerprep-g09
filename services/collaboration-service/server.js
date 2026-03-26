@@ -4,6 +4,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 
 const collabRouter = require('./routes/collab');
+const testCollabRouter = require('./routes/testCollab')
 
 const app = express();
 const server = http.createServer(app);
@@ -13,6 +14,9 @@ const io = new Server(server);
 app.use(express.json());
 
 app.use('/collab', collabRouter);
+
+// for testing
+app.use('/testCollab', testCollabRouter)
 
 app.get('/', (req, res) => {
     res.send('Main PeerPrep Landing Page');
@@ -30,7 +34,7 @@ io.on('connection', (socket) => {
     });
 });
 
-server.listen(3000, () => {
+const PORT = 3000
+server.listen(PORT, () => {
     console.log('Server running on http://localhost:3000');
 });
-// as long as 2 people are led to the same meeting room, then can code together
