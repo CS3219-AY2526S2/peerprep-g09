@@ -28,9 +28,22 @@ app.use(express.static(path.join(__dirname, 'frontend')));
 io.on('connection', (socket) => {
     socket.on('join-room', (roomId) => {
         socket.join(roomId);
+        // Optional: Notify others that someone joined
+        socket.to(roomId).emit('user-joined', 'A collaborator has entered.');
     });
+
     socket.on('code-change', (data) => {
         socket.to(data.roomId).emit('receive-code', data.code);
+    });
+
+    // Handle the moment right before the user leaves
+    socket.on('disconnecting', () => {
+        // socket.rooms is a Set containing the socket ID and the room IDs
+        socket.rooms.forEach(room => {
+            if (room !== socket.id) {
+                socket.to(room).emit('user-left', 'The other collaborator has left the workspace.');
+            }
+        });
     });
 });
 

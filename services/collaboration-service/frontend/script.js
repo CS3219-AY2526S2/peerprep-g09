@@ -49,7 +49,20 @@ require(['vs/editor/editor.main'], function() {
     });
 });
 
-// Simple Exit button logic
+// Add this inside your script.js (near your other socket.on listeners)
+
+socket.on('user-left', (message) => {
+    // You could update the statusLabel or use a toast notification
+    statusLabel.innerText = "Partner Left";
+    statusLabel.className = "status-offline";
+    
+    // Optional: Alert the user
+    alert(message);
+});
+
+// The Exit button logic remains the same. 
+// When window.location.href changes, the socket disconnects automatically, 
+// triggering the server logic above.
 document.getElementById('exit-btn').addEventListener('click', () => {
     if (confirm("Are you sure you want to leave the workspace?")) {
         window.location.href = "/";
