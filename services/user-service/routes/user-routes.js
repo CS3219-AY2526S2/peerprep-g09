@@ -14,9 +14,7 @@ router.post('/login', async (req, res) => {
     }
 
     try {
-
         const url = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FIREBASE_API_KEY}`;
-        
         const response = await fetch(url, {
             method: 'POST',
             body: JSON.stringify({
@@ -98,7 +96,7 @@ router.post('/logout', async (req, res) => {
 });
 
 router.patch('/promote-user', verifyAdmin, async (req, res) => {
-    const { uidToPromote} = req.body;
+    const { uidToPromote } = req.body;
     try {
     
         await firebaseApp.auth.setCustomUserClaims(uidToPromote, { role: 'Admin' });
