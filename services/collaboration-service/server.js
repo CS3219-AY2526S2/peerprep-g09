@@ -51,6 +51,8 @@ io.on('connection', (socket) => {
             isWarning: remaining <= 60 * 1000 && remaining > 0 
         });
 
+        updateUserCount(roomId);
+
         socket.to(roomId).emit('user-joined', 'A collaborator has entered.');
     });
 
@@ -63,11 +65,20 @@ io.on('connection', (socket) => {
         // socket.rooms is a Set containing the socket ID and the room IDs
         socket.rooms.forEach(room => {
             if (room !== socket.id) {
+                setTimeout(() => updateUserCount(room), 100);
                 socket.to(room).emit('user-left', 'The other collaborator has left the workspace.');
             }
         });
     });
 });
+
+// Helper to broadcast user count to a room
+const updateUserCount = (roomId) => {
+    const clients = io.sockets.adapter.rooms.get(roomId);
+    const count = clients ? clients.size : 0;
+    io.to(roomId).emit('user-count-update', count);
+    console.log(`[Server] Room ${roomId} now has ${count} user(s).`);
+};
 
 const PORT = 3000
 server.listen(PORT, () => {

@@ -113,3 +113,16 @@ function terminateMeeting() {
     alert("Meeting time has expired. Redirecting...");
     window.location.href = "/";
 }
+
+const userCountLabel = document.getElementById('user-count');
+
+socket.on('user-count-update', (count) => {
+    userCountLabel.innerText = `Users: ${count}`;
+    
+    // Optional: Visual cue if you're alone
+    if (count < 2) {
+        userCountLabel.style.color = "orange"; // Waiting for partner
+    } else {
+        userCountLabel.style.color = "lightgreen"; // Full room
+    }
+});
