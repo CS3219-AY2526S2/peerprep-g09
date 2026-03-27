@@ -27,6 +27,7 @@ app.get('/', (req, res) => {
 });
 
 app.use(express.static(path.join(__dirname, 'frontend')));
+app.use('/config', express.static(path.join(__dirname, 'config')));
 
 const roomTimers = new Map()
 

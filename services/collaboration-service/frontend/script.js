@@ -1,4 +1,6 @@
-// 1. Initialize Socket.io
+import db from "../config/firebase.js"
+import {doc, getDoc} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
 const socket = io();
 const roomId = window.location.pathname.split('/').pop();
 
@@ -126,3 +128,63 @@ socket.on('user-count-update', (count) => {
         userCountLabel.style.color = "lightgreen"; // Full room
     }
 });
+
+document.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const question = urlParams.get('question');
+
+    console.log("Full Search String:", window.location.search); 
+    
+    if (question) {
+        console.log("Fetching data for:", question);
+    }
+});
+
+async function loadQuestionData() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const questionId = urlParams.get('question'); 
+
+    if (questionId) {
+        const docRef = doc(db, "questions", questionId);
+        const docSnap = await getDoc(docRef);
+
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            return renderContent(data)
+        }
+    }
+
+    const data = {title : 'No title', description:'None given', constraints:[], examples:[]}
+
+    renderContent(data)
+}
+
+function renderContent(data) {
+    if (!data) return;
+
+    document.getElementById('qn-title').innerText = data.title;
+    document.getElementById('qn-description').innerText = data.description;
+
+    const constraintsContainer = document.getElementById('qn-constraints');
+    if (constraintsContainer && data.constraints) {
+        constraintsContainer.innerHTML = data.constraints
+            .map(c => `<li>${c}</li>`)
+            .join('');
+    }
+
+    const examplesContainer = document.getElementById('qn-examples');
+    if (examplesContainer && data.examples) {
+        examplesContainer.innerHTML = data.examples.map((ex, index) => `
+            <div class="example-block">
+                <h4>Example ${index + 1}:</h4>
+                <pre>
+<strong>Input:</strong> ${ex.input}
+<strong>Output:</strong> ${ex.output}
+<strong>Explanation:</strong> ${ex.explanation}
+                </pre>
+            </div>
+        `).join('');
+    }
+}
+
+loadQuestionData();

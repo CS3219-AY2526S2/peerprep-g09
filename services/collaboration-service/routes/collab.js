@@ -15,9 +15,11 @@ router.get('/redirect', (req, res) => {
 });
 
 router.post('/redirect', roomGuard, (req, res) => {
+    const {roomId, userId, questionId} = req.body
     res.status(200).json({message: 'Verification complete. Allow entry. ' ,
                             roomId : roomId, 
-                            userId : userId})
+                            userId : userId, 
+                            questionId:questionId})
 })
 
 router.get('/:roomid', roomGuard, (req, res) => {
