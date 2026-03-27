@@ -16,7 +16,6 @@ socket.on('disconnect', () => {
     statusLabel.className = "status-offline";
 });
 
-// 2. Configure and Load Monaco Editor
 require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs' }});
 
 require(['vs/editor/editor.main'], function() {
@@ -28,7 +27,6 @@ require(['vs/editor/editor.main'], function() {
         automaticLayout: true // Ensures editor resizes with the panel
     });
 
-    // 3. Sync Changes: Local -> Server
     editor.onDidChangeModelContent((event) => {
         // Only emit if the change was made by the user (not by a socket update)
         if (!editor.isUpdatingFromRemote) {
@@ -37,7 +35,6 @@ require(['vs/editor/editor.main'], function() {
         }
     });
 
-    // 4. Sync Changes: Server -> Local
     socket.on('receive-code', (newCode) => {
         const currentCode = editor.getValue();
         if (newCode !== currentCode) {
@@ -49,11 +46,9 @@ require(['vs/editor/editor.main'], function() {
     });
 });
 
-// Add this inside your script.js (near your other socket.on listeners)
-
 socket.on('user-left', (message) => {
     // You could update the statusLabel or use a toast notification
-    statusLabel.innerText = "Partner Left";
+    statusLabel.innerText = "online";
     statusLabel.className = "status-offline";
     
     // Optional: Alert the user
@@ -68,3 +63,53 @@ document.getElementById('exit-btn').addEventListener('click', () => {
         window.location.href = "/";
     }
 });
+
+let timerInterval;
+
+socket.on('timer-update', (data) => {
+    startCountdown(data.remaining);
+});
+
+function startCountdown(durationMs) {
+    if (timerInterval) clearInterval(timerInterval);
+
+    let timeLeft = durationMs;
+
+    timerInterval = setInterval(() => {
+        timeLeft -= 1000;
+
+        // 1-minute warning (60 seconds)
+        if (timeLeft <= 60000 && timeLeft > 59000) {
+            showWarning("Warning: 1 minute remaining before session ends!");
+        }
+
+        // Timer finished
+        if (timeLeft <= 0) {
+            clearInterval(timerInterval);
+            terminateMeeting();
+        }
+
+        updateTimerUI(timeLeft);
+    }, 1000);
+}
+
+function updateTimerUI(ms) {
+    const minutes = Math.floor(ms / 60000);
+    const seconds = Math.floor((ms % 60000) / 1000);
+    const display = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+    
+    // Ensure you have an element with id="timer-display" in your HTML
+    const timerElem = document.getElementById('timer-display');
+    if (timerElem) timerElem.innerText = display;
+}
+
+function showWarning(msg) {
+    // You can replace this with a nice Toast notification
+    console.warn(msg);
+    alert(msg); 
+}
+
+function terminateMeeting() {
+    alert("Meeting time has expired. Redirecting...");
+    window.location.href = "/";
+}
