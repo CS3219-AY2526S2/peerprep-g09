@@ -33,12 +33,32 @@ io.on('connection', (socket) => {
 
         if (!roomTimers.has(roomId)) {
             const startTime = Date.now();
+            const duration = 2 * 60 * 1000; 
+            
+            // Store the timeout reference so we know it's active
+            const cleanupTask = setTimeout(() => {
+                if (roomTimers.has(roomId)) {
+                    roomTimers.delete(roomId);
+                    // Physical proof of destruction in server console
+                    console.log(`[RESOURCES RELEASED] Room ${roomId} destroyed. Memory cleared.`);
+                    
+                    // Tell any remaining users the room is officially dead
+                    io.to(roomId).emit('room-destroyed');
+                }
+            }, duration + 5000);
+
+            roomTimers.set(roomId, { startTime, duration, cleanupTask });
+            console.log(`[RESOURCES ALLOCATED] Room ${roomId} created.`);
+        }
+        /*
+        if (!roomTimers.has(roomId)) {
+            const startTime = Date.now();
             const duration = 2 * 60 * 1000; // 2 minutes in ms
             roomTimers.set(roomId, { startTime, duration });
 
             // Set a timeout to clear the room data after 2 mins to prevent memory leaks
             setTimeout(() => roomTimers.delete(roomId), duration + 5000);
-        }
+        }*/
 
         const roomData = roomTimers.get(roomId);
         const currentTime = Date.now();
