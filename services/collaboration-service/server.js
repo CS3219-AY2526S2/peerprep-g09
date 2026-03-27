@@ -1,14 +1,18 @@
-const express = require('express');
-const path = require('path');
-const http = require('http');
-const { Server } = require('socket.io');
+import express from 'express'
+import path from 'path'
+import http from 'http'
+import {Server} from 'socket.io'
+import {fileURLToPath} from 'url';
 
-const collabRouter = require('./routes/collab');
-const testCollabRouter = require('./routes/testCollab')
+import collabRouter from './routes/collab.js'
+import testCollabRouter from './routes/testCollab.js'
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // Middleware
 app.use(express.json());
@@ -50,15 +54,6 @@ io.on('connection', (socket) => {
             roomTimers.set(roomId, { startTime, duration, cleanupTask });
             console.log(`[RESOURCES ALLOCATED] Room ${roomId} created.`);
         }
-        /*
-        if (!roomTimers.has(roomId)) {
-            const startTime = Date.now();
-            const duration = 2 * 60 * 1000; // 2 minutes in ms
-            roomTimers.set(roomId, { startTime, duration });
-
-            // Set a timeout to clear the room data after 2 mins to prevent memory leaks
-            setTimeout(() => roomTimers.delete(roomId), duration + 5000);
-        }*/
 
         const roomData = roomTimers.get(roomId);
         const currentTime = Date.now();

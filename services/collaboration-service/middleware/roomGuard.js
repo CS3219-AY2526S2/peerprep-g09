@@ -23,4 +23,4 @@ const roomGuard = (req, res, next) => {
     next();
 };
 
-module.exports = roomGuard;
+export default roomGuard

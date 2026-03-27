@@ -9,9 +9,10 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "dependencies": {
     "express": "^5.2.1",
+    "firebase-admin": "^13.7.0",
     "monaco-editor": "^0.55.1",
     "socket.io": "^4.8.3"
   }
