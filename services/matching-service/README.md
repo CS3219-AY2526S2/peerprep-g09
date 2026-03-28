@@ -67,10 +67,10 @@ The matching service is exposed on port `8082` and provides the following endpoi
 
 ### REST Endpoints
 
-| Method | Endpoint                       | Description                            | Auth Required |
-| :----- | :----------------------------- | :------------------------------------- | :------------ |
-| `GET`  | `/api/matching/categories`     | Return all choosable categories        | None          |
-| `GET`  | `/api/matching/status/:userId` | Return current matching status of user | UID           |
+| Method | Endpoint                   | Description                            | Auth Required |
+| :----- | :------------------------- | :------------------------------------- | :------------ |
+| `GET`  | `/api/matching/categories` | Return all choosable categories        | None          |
+| `GET`  | `/api/matching/status`     | Return current matching status of user | UID           |
 
 ### WebSocket Endpoints
 
