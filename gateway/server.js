@@ -34,7 +34,7 @@ app.use(
 );
 // Protected Route (requiring admin access too)
 app.use(
-  "/api/users/promote-user",
+  ["/api/users/promote-user","/api/users/demote-self"],
   verifyToken,
   verifyAdmin,
   createProxyMiddleware({

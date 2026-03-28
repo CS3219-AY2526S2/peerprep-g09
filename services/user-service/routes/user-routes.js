@@ -165,6 +165,28 @@ router.patch('/promote-user', async (req, res) => {
     }
 });
 
+router.patch('/demote-self', async (req, res) => {
+    const userData = JSON.parse(req.headers['x-user-data']);
+    const uid = userData.uid
+    const adminQuery = await firebaseApp.db.collection('users')
+        .where('role', '==', 'Admin')
+        .get();
+    if (adminQuery.size <= 1) {
+        return res.status(403).json({
+            error: "Cannot demote the last Admin account. Please promote another user first." 
+        });
+    }
+    try {
+        await firebaseApp.auth.setCustomUserClaims(uid, { role: 'User' });
+        await firebaseApp.db.collection('users').doc(uid).update({ role: 'User' });
+        res.status(200).json({ message: `Admin demoted to User` });
+        await firebaseApp.auth.revokeRefreshTokens(uid);
+
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
 router.post('/update-password', async (req, res) => {
     const {newPassword,oldPassword} = req.body;
     const userData = JSON.parse(req.headers['x-user-data']);
