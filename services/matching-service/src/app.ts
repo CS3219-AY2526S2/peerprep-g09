@@ -7,6 +7,7 @@ import matchingRouter from "./routes/matching-routes.js";
 import {
   handleDisconnect,
   handleJoinQueue,
+  handleLeaveQueue,
 } from "./controllers/socket-controller.js";
 import { initializeMetadata } from "./controllers/rest-controller.js";
 
@@ -61,6 +62,10 @@ io.on("connection", (socket) => {
 
   socket.on("join_queue", (data) => {
     handleJoinQueue(io, socket, data);
+  });
+
+  socket.on("leave_queue", (data) => {
+    handleLeaveQueue(data.userId);
   });
 
   socket.on("disconnect", () => {

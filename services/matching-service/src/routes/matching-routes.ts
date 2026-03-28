@@ -8,5 +8,6 @@ const router = express.Router();
 
 router.get("/status", getQueueStatus);
 router.get("/categories", getCategories);
+router.get("/difficulties", getCategories);
 
 export default router;
