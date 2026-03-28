@@ -7,7 +7,9 @@ import matchingRouter from "./routes/matching-routes.js";
 import {
   handleDisconnect,
   handleJoinQueue,
+  handleLeaveQueue,
 } from "./controllers/socket-controller.js";
+import { initializeMetadata } from "./controllers/rest-controller.js";
 
 const app = express();
 const server = createServer(app);
@@ -39,7 +41,7 @@ app.use((req, res, next) => {
 });
 
 // HTTP ROUTES
-app.use("/api/matching", matchingRouter);
+app.use("/", matchingRouter);
 
 app.get("/", (req, res, _) => {
   console.log("Sending Greetings!");
@@ -62,12 +64,22 @@ io.on("connection", (socket) => {
     handleJoinQueue(io, socket, data);
   });
 
+  socket.on("leave_queue", (data) => {
+    handleLeaveQueue(data.userId);
+  });
+
   socket.on("disconnect", () => {
     // if disconnect, remove from redis queue
     handleDisconnect(socket);
   });
 });
 
-server.listen(PORT, () => {
-  console.log(`Server is listening on port ${PORT}`);
-});
+const startServer = async () => {
+  await initializeMetadata();
+
+  server.listen(PORT, () => {
+    console.log(`Server is listening on port ${PORT}`);
+  });
+};
+
+startServer();

@@ -1,7 +1,13 @@
 import axios from "axios";
 import redis from "../services/redisService.js";
 import { Server, Socket } from "socket.io";
+import {
+  PREDEFINED_TOPICS,
+  PREDEFINED_DIFFICULTIES,
+} from "./rest-controller.js";
 
+const QUESTION_SERVICE_URL =
+  process.env.QUESTION_SERVICE_URL || "http://localhost:8081";
 const userSockets = new Map<string, string>();
 
 interface MatchRequestData {
@@ -16,15 +22,35 @@ export const handleJoinQueue = async (
   data: MatchRequestData,
 ) => {
   const { userId, category, difficulty } = data;
-  const queueKey = `queue:${category}:${difficulty}`;
+
+  if (userSockets.has(userId)) {
+    socket.emit("error", { message: "Already in matchmaking queue." });
+    return;
+  }
+  if (!category || !difficulty) {
+    console.log(
+      `Invalid join_queue request from ${userId}: Missing category or difficulty.`,
+    );
+    socket.emit("error", { message: "Category and difficulty are required." });
+    return;
+  }
+  console.log("Predefined topics:", Array.from(PREDEFINED_TOPICS));
+  console.log("Predefined difficulties:", Array.from(PREDEFINED_DIFFICULTIES));
+  if (
+    !PREDEFINED_TOPICS.has(category) ||
+    !PREDEFINED_DIFFICULTIES.has(difficulty)
+  ) {
+    socket.emit("error", { message: "Invalid category or difficulty." });
+    return;
+  }
 
   // store the user's socket mapping
   userSockets.set(userId, socket.id);
 
+  const queueKey = `queue:${category}:${difficulty}`;
   const partnerId = await redis.lpop(queueKey);
 
   if (partnerId && partnerId !== userId) {
-
     // change the id so that it is easier to test if 2 people are even allowed to enter the same room
     const sortedIds = [userId, partnerId].sort();
     const roomId = `room-${Date.now()}-${sortedIds[0]}-${sortedIds[1]}`;
@@ -96,12 +122,9 @@ export const handleDisconnect = async (socket: Socket) => {
 
 const fetchQuestion = async (category: string, difficulty: string) => {
   try {
-    const res = await axios.get(
-      `http://question-service:8080/questions/random`,
-      {
-        params: { category, difficulty },
-      },
-    );
+    const res = await axios.get(`${QUESTION_SERVICE_URL}/`, {
+      params: { category, difficulty },
+    });
     return res.data;
   } catch {
     return { title: "Generic Coding Question", id: "default" };
