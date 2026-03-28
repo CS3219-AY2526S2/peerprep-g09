@@ -153,7 +153,7 @@ router.post('/logout', async (req, res) => {
     }
 });
 
-router.patch('/promote-user', verifyAdmin, async (req, res) => {
+router.patch('/promote-user', async (req, res) => {
     const { uidToPromote } = req.body;
     try {
     
