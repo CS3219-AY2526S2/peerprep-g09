@@ -49,7 +49,11 @@ export const handleJoinQueue = async (
   const partnerId = await redis.lpop(queueKey);
 
   if (partnerId && partnerId !== userId) {
-    const roomId = `room-${Date.now()}`; // Unique session ID
+
+    // change the id so that it is easier to test if 2 people are even allowed to enter the same room
+    const sortedIds = [userId, partnerId].sort();
+    const roomId = `room-${Date.now()}-${sortedIds[0]}-${sortedIds[1]}`;
+
     const partnerSocketId = userSockets.get(partnerId);
 
     if (!partnerSocketId) {
