@@ -1,4 +1,4 @@
-import { response, type Request, type Response } from "express";
+import { type Request, type Response } from "express";
 import axios from "axios";
 import redis from "../services/redisService.js";
 
