@@ -83,8 +83,8 @@ The matching service is exposed on port `8082` and provides the following endpoi
 |  Status  | ID                         | Feature                                                         | Priority | Sprint |
 | :------: | :------------------------- | :-------------------------------------------------------------- | :------: | :----: |
 | **M2F1** | **Queue Entry Validation** |                                                                 |          |        |
-|   [ ]    | M2F1.1.1                   | Maintain predefined supported topics and difficulties           |   High   |   1    |
-|   [ ]    | M2F1.1.2                   | Reject invalid topics or difficulty selections                  |   High   |   1    |
+|   [x]    | M2F1.1.1                   | Maintain predefined supported topics and difficulties           |   High   |   1    |
+|   [x]    | M2F1.1.2                   | Reject invalid topics or difficulty selections                  |   High   |   1    |
 |   [x]    | M2F1.1.3                   | Reject queue requests with missing topics or difficulty         |   High   |   1    |
 |   [ ]    | M2F1.1.4                   | Default to user's previous selection                            |   Low    |   3    |
 | **M2F2** | **Queue Management**       |                                                                 |          |        |

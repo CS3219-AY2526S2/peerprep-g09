@@ -1,4 +1,4 @@
-import type { Request, Response } from "express";
+import { response, type Request, type Response } from "express";
 import axios from "axios";
 import redis from "../services/redisService.js";
 
@@ -11,16 +11,21 @@ export const initializeMetadata = async () => {
   try {
     console.log("Fetching topics and difficulties from Question Service...");
 
-    const response = await axios.get(
-      `${QUESTION_SERVICE_URL}/api/questions/metadata`,
+    const difficultyResponse = await axios.get(
+      `${QUESTION_SERVICE_URL}/api/questions/metadata/difficulties`,
     );
-    const { topics, difficulties } = response.data;
+    const { difficulties } = difficultyResponse.data;
 
-    PREDEFINED_TOPICS.clear();
-    topics.forEach((t: string) => PREDEFINED_TOPICS.add(t));
+    const topicResponse = await axios.get(
+      `${QUESTION_SERVICE_URL}/api/questions/metadata/topics`,
+    );
+    const { topics } = topicResponse.data;
 
     PREDEFINED_DIFFICULTIES.clear();
     difficulties.forEach((d: string) => PREDEFINED_DIFFICULTIES.add(d));
+
+    PREDEFINED_TOPICS.clear();
+    topics.forEach((t: string) => PREDEFINED_TOPICS.add(t));
 
     console.log(
       `Initialized ${PREDEFINED_TOPICS.size} topics and ${PREDEFINED_DIFFICULTIES.size} difficulties.`,
@@ -29,6 +34,7 @@ export const initializeMetadata = async () => {
     console.error("Failed to initialize matching metadata:", error);
     // Optional: Set some hardcoded defaults so the service doesn't break entirely
     ["Easy", "Medium", "Hard"].forEach((d) => PREDEFINED_DIFFICULTIES.add(d));
+    ["Algorithms", "Data Structures"].forEach((t) => PREDEFINED_TOPICS.add(t));
   }
 };
 
@@ -45,5 +51,16 @@ export async function getQueueStatus(req: Request, res: Response) {
 
 export async function getCategories(req: Request, res: Response) {
   console.log(`Getting categories.`);
-  res.json({ message: `Categories retrieved.` });
+  res.json({
+    message: `Categories retrieved.`,
+    categories: Array.from(PREDEFINED_TOPICS),
+  });
+}
+
+export async function getDifficulties(req: Request, res: Response) {
+  console.log(`Getting difficulties.`);
+  res.json({
+    message: `Difficulties retrieved.`,
+    difficulties: Array.from(PREDEFINED_DIFFICULTIES),
+  });
 }

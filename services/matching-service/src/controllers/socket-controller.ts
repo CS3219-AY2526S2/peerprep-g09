@@ -34,13 +34,13 @@ export const handleJoinQueue = async (
   }
   console.log("Predefined topics:", Array.from(PREDEFINED_TOPICS));
   console.log("Predefined difficulties:", Array.from(PREDEFINED_DIFFICULTIES));
-  // if (
-  //   !PREDEFINED_TOPICS.has(category) ||
-  //   !PREDEFINED_DIFFICULTIES.has(difficulty)
-  // ) {
-  //   socket.emit("error", { message: "Invalid category or difficulty." });
-  //   return;
-  // }
+  if (
+    !PREDEFINED_TOPICS.has(category) ||
+    !PREDEFINED_DIFFICULTIES.has(difficulty)
+  ) {
+    socket.emit("error", { message: "Invalid category or difficulty." });
+    return;
+  }
 
   // store the user's socket mapping
   userSockets.set(userId, socket.id);
