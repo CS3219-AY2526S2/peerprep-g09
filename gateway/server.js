@@ -15,15 +15,24 @@ app.use(
 );
 
 app.use(
-  ["/api/users/login", "/api/users/register", "/api/users/logout"],
+  ["/api/users/login", "/api/users/register", "/api/users/logout","/api/users/forgot-password"],
   createProxyMiddleware({
     target: USER_SERVICE,
     changeOrigin: true,
     pathRewrite: (path, req) => req.originalUrl,
   }),
 );
-
 // Protected Route
+app.use(
+  "/api/users/update-password",
+  verifyToken, 
+  createProxyMiddleware({
+    target: USER_SERVICE,
+    changeOrigin: true,
+    pathRewrite: (path, req) => req.originalUrl,
+  }),
+);
+// Protected Route (requiring admin access too)
 app.use(
   "/api/users/promote-user",
   verifyToken,

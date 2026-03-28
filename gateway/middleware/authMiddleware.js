@@ -34,8 +34,9 @@ export const verifyToken = async (req, res, next) => {
     const idToken = authHeader.split('Bearer ')[1];
 
     try {
-        const decodedToken = await admin.auth().verifyIdToken(idToken);
-        req.user = decodedToken;
+        const checkRevoked = true
+        const decodedToken = await admin.auth().verifyIdToken(idToken,checkRevoked);
+        req.headers['x-user-data'] = JSON.stringify(decodedToken);
         next();
     } catch (error) {
         console.error("Error verifying token:", error);

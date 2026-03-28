@@ -2,7 +2,6 @@ import express from 'express';
 import 'dotenv/config';
 import firebaseApp from '../config/firebase.js';
 import Validator from '../utils/validation.js';
-import verifyAdmin  from '../middleware/authMiddleware.js';
 import nodemailer from 'nodemailer';
 
 const router = express.Router();
@@ -156,7 +155,6 @@ router.post('/logout', async (req, res) => {
 router.patch('/promote-user', async (req, res) => {
     const { uidToPromote } = req.body;
     try {
-    
         await firebaseApp.auth.setCustomUserClaims(uidToPromote, { role: 'Admin' });
         
         await firebaseApp.db.collection('users').doc(uidToPromote).update({ role: 'Admin' });
@@ -166,6 +164,47 @@ router.patch('/promote-user', async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+
+router.post('/update-password', async (req, res) => {
+    const {newPassword,oldPassword} = req.body;
+    const userData = JSON.parse(req.headers['x-user-data']);
+    const uid = userData.uid
+    if (!newPassword || !oldPassword) {
+        return res.status(400).json({ error: "Both old and new passwords are required." });
+    }
+    if (!Validator.validatePassword(newPassword)) {
+        return res.status(400).json({ 
+            error: "Password must be 8+ chars with uppercase, lowercase, and a number." 
+        });
+    }
+    try {
+        const userRecord = await firebaseApp.auth.getUser(uid);
+        const email = userRecord.email;
+        const signInUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FIREBASE_API_KEY}`;
+        const verifyResponse = await fetch(signInUrl, {
+            method: 'POST',
+            body: JSON.stringify({
+                email: email,
+                password: oldPassword,
+                returnSecureToken: false
+            }),
+            headers: { 'Content-Type': 'application/json' }
+        });
+        if (!verifyResponse.ok) {
+            return res.status(401).json({ error: "The old password you entered is incorrect." });
+        }
+        await firebaseApp.auth.updateUser(uid, {
+            password: newPassword
+        });
+        await firebaseApp.auth.revokeRefreshTokens(uid);
+
+        res.status(200).json({ message: "Password updated successfully." });
+    }catch(error) {
+        console.error("Update Password Error:", error);
+        res.status(500).json({ error: "Server error during password update." });
+    }
+}
+)
 
 router.post('/forgot-password', async (req, res) => {
     const { email } = req.body;
