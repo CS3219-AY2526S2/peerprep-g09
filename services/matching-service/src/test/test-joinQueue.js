@@ -21,6 +21,11 @@ const createClient = (userId, category, difficulty) => {
     console.log(`❌ ${userId}: ${data.message}`);
     socket.disconnect();
   });
+
+  socket.on("error", (data) => {
+    console.log(`⚠️ ${userId} ERROR: ${data.message}`);
+    socket.disconnect();
+  });
 };
 
 // Simulate User A
@@ -43,7 +48,7 @@ setTimeout(() => {
 }, 3000);
 
 // Simulate User E after a 4-second delay
-// Should timeout within 5 seconds since no match will be found
+// Should return an error since there are no category and difficulty specified
 setTimeout(() => {
-  createClient("User_E", "Algorithms", "Medium");
+  createClient("User_E", "", "");
 }, 4000);

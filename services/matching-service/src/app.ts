@@ -8,6 +8,7 @@ import {
   handleDisconnect,
   handleJoinQueue,
 } from "./controllers/socket-controller.js";
+import { initializeMetadata } from "./controllers/rest-controller.js";
 
 const app = express();
 const server = createServer(app);
@@ -68,6 +69,12 @@ io.on("connection", (socket) => {
   });
 });
 
-server.listen(PORT, () => {
-  console.log(`Server is listening on port ${PORT}`);
-});
+const startServer = async () => {
+  await initializeMetadata();
+
+  server.listen(PORT, () => {
+    console.log(`Server is listening on port ${PORT}`);
+  });
+};
+
+startServer();
