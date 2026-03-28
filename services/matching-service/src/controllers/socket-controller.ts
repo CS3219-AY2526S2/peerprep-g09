@@ -6,6 +6,8 @@ import {
   PREDEFINED_DIFFICULTIES,
 } from "./rest-controller.js";
 
+const QUESTION_SERVICE_URL =
+  process.env.QUESTION_SERVICE_URL || "http://localhost:8081";
 const userSockets = new Map<string, string>();
 
 interface MatchRequestData {
@@ -49,7 +51,6 @@ export const handleJoinQueue = async (
   const partnerId = await redis.lpop(queueKey);
 
   if (partnerId && partnerId !== userId) {
-
     // change the id so that it is easier to test if 2 people are even allowed to enter the same room
     const sortedIds = [userId, partnerId].sort();
     const roomId = `room-${Date.now()}-${sortedIds[0]}-${sortedIds[1]}`;
@@ -121,12 +122,9 @@ export const handleDisconnect = async (socket: Socket) => {
 
 const fetchQuestion = async (category: string, difficulty: string) => {
   try {
-    const res = await axios.get(
-      `http://question-service:8080/questions/random`,
-      {
-        params: { category, difficulty },
-      },
-    );
+    const res = await axios.get(`${QUESTION_SERVICE_URL}/`, {
+      params: { category, difficulty },
+    });
     return res.data;
   } catch {
     return { title: "Generic Coding Question", id: "default" };
