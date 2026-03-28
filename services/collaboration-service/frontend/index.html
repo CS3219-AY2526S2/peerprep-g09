@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>PeerPrep | Collaborative Workspace</title>
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <header id="navbar">
+        <div class="logo">PeerPrep</div>
+        <div class="actions">
+            <span id="user-count">Users: 0</span>
+            <span id="timer-display">Time left:</span>
+            <button id="exit-btn">Exit</button>
+            <span id="connection-status" class="status-offline">Offline</span>
+        </div>
+    </header>
+
+    <main id="workspace">
+        <section id="question-panel">
+            <div class="panel-content">
+                <h1 id="qn-title">Qn title</h1>
+                <p id="qn-description"></p>
+                <h3>Constraints</h3>
+                <ul id="qn-constraints"></ul>
+                <div id="qn-examples"></div>
+            </div>
+        </section>
+
+        <section id="editor-panel">
+            <div id="editor-container"></div>
+        </section>
+    </main>
+
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs/loader.min.js"></script>
+    <script src="/script.js" type="module"></script>
+</body>
+</html>
