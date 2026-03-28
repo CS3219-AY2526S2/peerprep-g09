@@ -169,6 +169,7 @@ router.post('/update-password', async (req, res) => {
     const {newPassword,oldPassword} = req.body;
     const userData = JSON.parse(req.headers['x-user-data']);
     const uid = userData.uid
+    console.log(userData)
     if (!newPassword || !oldPassword) {
         return res.status(400).json({ error: "Both old and new passwords are required." });
     }
@@ -237,5 +238,29 @@ router.post('/forgot-password', async (req, res) => {
         res.status(500).json({ error: "Server error sending reset email." });
     }
 });
+
+router.delete('/delete-account', async (req,res) => {
+    try{
+        const userData = JSON.parse(req.headers['x-user-data']);
+        const uid = userData.uid
+        const role = userData.role
+        if (role == 'Admin'){
+            const adminQuery = await firebaseApp.db.collection('users')
+                .where('role', '==', 'Admin')
+                .get();
+            if (adminQuery.size <= 1) {
+                return res.status(403).json({ 
+                    error: "Cannot delete the last Admin account. Please promote another user first." 
+                });
+            }
+        }
+    await firebaseApp.db.collection('users').doc(uid).delete();
+    await firebaseApp.auth.deleteUser(uid);
+    res.status(200).json({ message: "Account successfully deleted." });
+    }catch(err){
+        console.error("Delete Account Error:", err);
+        res.status(500).json({ error: "Server error during account deletion." });
+    }
+})
 
 export default router;
