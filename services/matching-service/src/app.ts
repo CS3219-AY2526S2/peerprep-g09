@@ -41,7 +41,7 @@ app.use((req, res, next) => {
 });
 
 // HTTP ROUTES
-app.use("/api/matching", matchingRouter);
+app.use("/", matchingRouter);
 
 app.get("/", (req, res, _) => {
   console.log("Sending Greetings!");
