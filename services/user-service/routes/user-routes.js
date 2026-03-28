@@ -2,7 +2,6 @@ import express from 'express';
 import 'dotenv/config';
 import firebaseApp from '../config/firebase.js';
 import Validator from '../utils/validation.js';
-import verifyAdmin  from '../middleware/authMiddleware.js';
 
 const router = express.Router();
 const FIREBASE_API_KEY = process.env.FIREBASE_WEB_API_KEY;
@@ -95,7 +94,7 @@ router.post('/logout', async (req, res) => {
     }
 });
 
-router.patch('/promote-user', verifyAdmin, async (req, res) => {
+router.patch('/promote-user', async (req, res) => {
     const { uidToPromote } = req.body;
     try {
     
