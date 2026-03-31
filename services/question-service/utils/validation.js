@@ -1,5 +1,5 @@
 import ALLOWED_TOPICS from "../constants/topics.js";
-import ALLOWED_DIFFICULTIES from "../constants/difficulties.js"
+import ALLOWED_DIFFICULTIES from "../constants/difficulties.js";
 
 const normalizeTopics = (topics) => {
   if (!Array.isArray(topics)) {
@@ -45,7 +45,11 @@ class QuestionValidator {
     }
 
     if (!partial || payload.difficulty !== undefined) {
-      if (!ALLOWED_DIFFICULTIES.includes(String(payload.difficulty).toLowerCase())) {
+      const normalizedDifficulty = payload.difficulty
+        ? String(payload.difficulty).trim().toLowerCase()
+        : "";
+
+      if (!ALLOWED_DIFFICULTIES.includes(normalizedDifficulty)) {
         errors.push("difficulty must be one of: easy, medium, hard.");
       }
     }

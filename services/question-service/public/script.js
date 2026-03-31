@@ -16,7 +16,7 @@ const formFields = {
   title: document.getElementById("title"),
   description: document.getElementById("description"),
   difficulty: document.getElementById("difficulty"),
-  topics: document.getElementById("topics"),
+  topicsContainer: document.getElementById("topics-container"),
   constraints: document.getElementById("constraints"),
   examples: document.getElementById("examples"),
   sourceUrl: document.getElementById("sourceUrl"),
@@ -59,8 +59,17 @@ const renderTopicOptions = () => {
     ${allowedTopics.map((topic) => `<option value="${topic}">${topic}</option>`).join("")}
   `;
 
-  formFields.topics.innerHTML = allowedTopics.map(
-    (topic) => `<option value="${topic}">${topic}</option>`
+  formFields.topicsContainer.innerHTML = allowedTopics.map((topic) => `
+    <div class="checkbox-item">
+      <input 
+        type="checkbox" 
+        id="topic-${topic}" 
+        name="topics" 
+        value="${topic}"
+      >
+      <label for="topic-${topic}">${topic}</label>
+    </div>
+  `
   ).join("");
 };
 
@@ -68,12 +77,18 @@ const renderDifficultyOptions = () => {
   difficultyFilterInput.innerHTML = `
     <option value="">All</option>
     ${allowedDifficulties
-      .map((difficulty) => `<option value="${difficulty}">${difficulty}</option>`)
+      .map(
+        (difficulty) =>
+          `<option value="${difficulty}">${difficulty.charAt(0).toUpperCase()}${difficulty.slice(1)}</option>`
+      )
       .join("")}
   `;
 
   formFields.difficulty.innerHTML = allowedDifficulties
-    .map((difficulty) => `<option value="${difficulty}">${difficulty}</option>`)
+    .map(
+      (difficulty) =>
+        `<option value="${difficulty}">${difficulty.charAt(0).toUpperCase()}${difficulty.slice(1)}</option>`
+    )
     .join("");
 };
 
@@ -106,13 +121,20 @@ const buildQueryString = () => {
 };
 
 const resetForm = () => {
-  Object.values(formFields).forEach((field) => {
-    field.value = "";
-  });
+  formFields.questionId.value = "";
+  formFields.title.value = "";
+  formFields.description.value = "";
+  formFields.constraints.value = "";
+  formFields.examples.value = "";
+  formFields.sourceUrl.value = "";
+  formFields.imageUrl.value = "";
 
-  formFields.difficulty.value = "easy";
-  Array.from(formFields.topics.options).forEach((option) => {
-    option.selected = false;
+  if (allowedDifficulties.length > 0) {
+    formFields.difficulty.value = allowedDifficulties[0];
+  }
+
+  formFields.topicsContainer.querySelectorAll('input[name="topics"]').forEach((checkbox) => {
+    checkbox.checked = false;
   });
 };
 
@@ -127,7 +149,9 @@ const getPayloadFromForm = () => {
     title: formFields.title.value,
     description: formFields.description.value,
     difficulty: formFields.difficulty.value,
-    topics: Array.from(formFields.topics.selectedOptions).map((option) => option.value),
+    topics: Array.from(
+      formFields.topicsContainer.querySelectorAll('input[name="topics"]:checked')
+    ).map((checkbox) => checkbox.value),
     constraints: formFields.constraints.value
       .split("\n")
       .map((constraint) => constraint.trim())
@@ -143,8 +167,8 @@ const populateForm = (question) => {
   formFields.title.value = question.title || "";
   formFields.description.value = question.description || "";
   formFields.difficulty.value = question.difficulty || "easy";
-  Array.from(formFields.topics.options).forEach((option) => {
-    option.selected = (question.topics || []).includes(option.value);
+  formFields.topicsContainer.querySelectorAll('input[name="topics"]').forEach((checkbox) => {
+    checkbox.checked = (question.topics || []).includes(checkbox.value);
   });
   formFields.constraints.value = (question.constraints || []).join("\n");
   formFields.examples.value = JSON.stringify(question.examples || [], null, 2);

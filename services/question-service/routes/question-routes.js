@@ -14,35 +14,38 @@ const mapQuestionDocument = (doc) => ({
   ...doc.data(),
 });
 
+router.get("/metadata/difficulties", (req, res) => {
+  res.status(200).json(ALLOWED_DIFFICULTIES);
+});
+
+router.get("/metadata/topics", (req, res) => {
+  res.status(200).json(ALLOWED_TOPICS);
+});
+
 router.get("/", verifyAuthenticated, async (req, res) => {
   try {
     const { difficulty, topic } = req.query;
     let query = questionsCollection;
+    const normalizedDifficulty = difficulty ? String(difficulty).trim().toLowerCase() : "";
+    const normalizedTopic = topic ? String(topic).trim().toLowerCase() : "";
 
-    if (difficulty) {
-      query = query.where("difficulty", "==", String(difficulty).toLowerCase());
+    if (normalizedDifficulty) {
+      query = query.where("difficulty", "==", normalizedDifficulty);
+    }
+
+    if (normalizedTopic) {
+      query = query.where("topics", "array-contains", normalizedTopic);
     }
 
     const snapshot = await query.get();
-    let questions = snapshot.docs.map(mapQuestionDocument);
-
-    if (topic) {
-      const normalizedTopic = String(topic).toLowerCase();
-      questions = questions.filter((question) => question.topics?.includes(normalizedTopic));
-    }
+    const questions = snapshot.docs.map(mapQuestionDocument);
 
     res.status(200).json(questions);
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch questions." });
   }
 });
-router.get("/metadata/difficulties", async (req, res) => {
-    res.status(200).json(ALLOWED_DIFFICULTIES);
-});
 
-router.get("/metadata/topics", async (req, res) => {
-    res.status(200).json(ALLOWED_TOPICS);
-});
 router.get("/:id", verifyAuthenticated, async (req, res) => {
   try {
     const doc = await questionsCollection.doc(req.params.id).get();

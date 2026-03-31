@@ -85,6 +85,33 @@ button.danger {
   gap: 12px;
 }
 
+.topic-checkboxes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border: 1px solid #cbd2d9;
+  border-radius: 10px;
+  background: #f8fbfc;
+}
+
+.checkbox-item input {
+  width: auto;
+  margin: 0;
+}
+
+.checkbox-item label {
+  margin: 0;
+  font-weight: 500;
+}
+
 .question-card {
   border: 1px solid #d9e2ec;
   border-radius: 14px;
