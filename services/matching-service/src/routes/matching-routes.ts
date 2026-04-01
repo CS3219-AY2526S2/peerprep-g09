@@ -6,7 +6,8 @@ import {
 
 const router = express.Router();
 
-router.get("/status/:userId", getQueueStatus);
+router.get("/status", getQueueStatus);
 router.get("/categories", getCategories);
+router.get("/difficulties", getCategories);
 
 export default router;
