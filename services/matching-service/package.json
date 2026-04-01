@@ -8,7 +8,8 @@
     "build": "tsc",
     "start": "node dist/app.js",
     "lint": "eslint src/",
-    "lint:fix": "eslint --fix src/"
+    "lint:fix": "eslint --fix src/",
+    "test:join": "node src/test/test-joinQueue.js"
   },
   "keywords": [],
   "author": "",
@@ -19,7 +20,8 @@
     "cors": "^2.8.6",
     "express": "^5.2.1",
     "ioredis": "^5.9.2",
-    "socket.io": "^4.8.3"
+    "socket.io": "^4.8.3",
+    "socket.io-client": "^4.8.3"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",

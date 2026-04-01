@@ -11,3 +11,4 @@ serviceAccountKey.json
 *.log
 test.js
 seed-admin.js
+.DS_Store
