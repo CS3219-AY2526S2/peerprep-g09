@@ -65,7 +65,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("leave_queue", (data) => {
-    handleLeaveQueue(data.userId);
+    handleLeaveQueue(socket, data.userId);
   });
 
   socket.on("disconnect", () => {

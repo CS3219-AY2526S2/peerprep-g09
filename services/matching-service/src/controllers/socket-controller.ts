@@ -23,6 +23,11 @@ export const handleJoinQueue = async (
 ) => {
   const { userId, category, difficulty } = data;
 
+  if (!userId) {
+    console.log(`Invalid join_queue request: Missing userId.`);
+    socket.emit("error", { message: "userId is required." });
+    return;
+  }
   if (userSockets.has(userId)) {
     socket.emit("error", { message: "Already in matchmaking queue." });
     return;
@@ -34,8 +39,6 @@ export const handleJoinQueue = async (
     socket.emit("error", { message: "Category and difficulty are required." });
     return;
   }
-  console.log("Predefined topics:", Array.from(PREDEFINED_TOPICS));
-  console.log("Predefined difficulties:", Array.from(PREDEFINED_DIFFICULTIES));
   if (
     !PREDEFINED_TOPICS.has(category) ||
     !PREDEFINED_DIFFICULTIES.has(difficulty)
@@ -43,6 +46,10 @@ export const handleJoinQueue = async (
     socket.emit("error", { message: "Invalid category or difficulty." });
     return;
   }
+
+  socket.emit("queue_joined", {
+    message: `${userId} joined matchmaking queue.`,
+  });
 
   // store the user's socket mapping
   userSockets.set(userId, socket.id);
@@ -99,12 +106,17 @@ export const handleJoinQueue = async (
   }
 };
 
-export const handleLeaveQueue = async (userId: string) => {
+export const handleLeaveQueue = async (socket: Socket, userId: string) => {
+  if (!userSockets.has(userId)) {
+    socket.emit("error", { message: "Not currently in matchmaking queue." });
+    return;
+  }
   const keys = await redis.keys(`queue:*`);
   for (const key of keys) {
     await redis.lrem(key, 0, userId);
   }
   userSockets.delete(userId);
+  socket.emit("queue_left", { message: `${userId} left matchmaking queue.` });
 };
 
 export const handleDisconnect = async (socket: Socket) => {
