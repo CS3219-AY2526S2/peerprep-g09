@@ -1,0 +1,32 @@
+version: '3.8'
+
+services:
+  # 1. Redis Database
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+
+  # 2. Matching Service
+  matching-service:
+    build: ./services/matching-service
+    ports:
+      - "8082:8082"
+    environment:
+      - REDIS_URL=redis://redis:6379
+      - QUESTION_SERVICE_URL=http://question-service:8081 # Adjust if needed
+    depends_on:
+      - redis
+
+  # 3. Frontend (Next.js)
+  frontend:
+    build: ./frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_MATCHING_SERVICE_URL=http://localhost:8082
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules # Don't overwrite node_modules with local ones
+    depends_on:
+      - matching-service
