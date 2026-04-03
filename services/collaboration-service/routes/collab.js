@@ -14,7 +14,9 @@ router.get('/redirect', (req, res) => {
     res.send('Welcome to the Collab space');
 });
 
-router.post('/redirect', roomGuard, (req, res) => {
+// room guard removed temporarily 
+
+router.post('/redirect', (req, res) => {
     const {roomId, userId, questionId} = req.body
     res.status(200).json({message: 'Verification complete. Allow entry. ' ,
                             roomId : roomId, 
@@ -22,7 +24,7 @@ router.post('/redirect', roomGuard, (req, res) => {
                             questionId:questionId})
 })
 
-router.get('/:roomid', roomGuard, (req, res) => {
+router.get('/:roomid', (req, res) => {
     res.status(200).sendFile(path.join(__dirname, '..', 'frontend', 'index.html'));
 });
 

@@ -5,7 +5,6 @@ import {Server} from 'socket.io'
 import {fileURLToPath} from 'url';
 
 import collabRouter from './routes/collab.js'
-import testCollabRouter from './routes/testCollab.js'
 
 const app = express();
 const server = http.createServer(app);
@@ -18,9 +17,6 @@ const __dirname = path.dirname(__filename);
 app.use(express.json());
 
 app.use('/collab', collabRouter);
-
-// for testing
-app.use('/testCollab', testCollabRouter)
 
 app.get('/', (req, res) => {
     res.send('Main PeerPrep Landing Page');
@@ -96,7 +92,7 @@ const updateUserCount = (roomId) => {
     console.log(`[Server] Room ${roomId} now has ${count} user(s).`);
 };
 
-const PORT = 3000
+const PORT = 8084
 server.listen(PORT, () => {
-    console.log('Server running on http://localhost:3000');
+    console.log('Server running on http://localhost:8084');
 });
