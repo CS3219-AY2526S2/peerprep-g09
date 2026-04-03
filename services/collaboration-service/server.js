@@ -29,7 +29,7 @@ const roomTimers = new Map()
 
 // Global Socket Logic
 io.on('connection', (socket) => {
-    socket.on('join-room', (roomId) => {
+    socket.on('join-room', (roomId, questionId) => {
         socket.join(roomId);
 
         if (!roomTimers.has(roomId)) {
@@ -48,14 +48,17 @@ io.on('connection', (socket) => {
                 }
             }, duration + 5000);
 
-            roomTimers.set(roomId, { startTime, duration, cleanupTask });
+            roomTimers.set(roomId, { startTime, duration, questionId, cleanupTask });
             console.log(`[RESOURCES ALLOCATED] Room ${roomId} created.`);
+
         }
 
         const roomData = roomTimers.get(roomId);
         const currentTime = Date.now();
         const elapsed = currentTime - roomData.startTime;
         const remaining = Math.max(0, roomData.duration - elapsed);
+
+        socket.emit('init-room-data', { questionId: roomData.questionId });
 
         socket.emit('timer-update', { 
             remaining, 

@@ -1,6 +1,3 @@
-import db from "../config/firebase.js"
-import {doc, getDoc} from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-
 const socket = io();
 const roomId = window.location.pathname.split('/').pop();
 
@@ -106,7 +103,6 @@ function updateTimerUI(ms) {
 }
 
 function showWarning(msg) {
-    // You can replace this with a nice Toast notification
     console.warn(msg);
     alert(msg); 
 }
@@ -140,30 +136,39 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-async function loadQuestionData() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const questionId = urlParams.get('question'); 
-
+async function loadQuestionData(questionId) {
     if (questionId) {
-        const docRef = doc(db, "questions", questionId);
-        const docSnap = await getDoc(docRef);
-
-        if (docSnap.exists()) {
-            const data = docSnap.data();
-            return renderContent(data)
+        try {
+            // We fetch from the Question Service (Port 8081)
+            const response = await fetch(`http://localhost:8081/api/questions/${questionId}`);
+            
+            if (response.ok) {
+                const data = await response.json();
+                // Ensure renderContent uses the mapped data from the service
+                return renderContent(data);
+            } else {
+                console.error("Question Service returned an error status:", response.status);
+            }
+        } catch (error) {
+            console.error("Error fetching from Question Service:", error);
         }
     }
 
-    const data = {title : 'No title', description:'None given', constraints:[], examples:[]}
-
-    renderContent(data)
+    // Fallback if service is down, ID is missing, or fetch fails
+    const fallbackData = {
+        title: 'Challenge Unavailable', 
+        description: 'We encountered an error loading the question. Please try refreshing or re-matching.', 
+        constraints: [], 
+        examples: []
+    };
+    renderContent(fallbackData);
 }
 
 function renderContent(data) {
     if (!data) return;
 
-    document.getElementById('qn-title').innerText = data.title;
-    document.getElementById('qn-description').innerText = data.description;
+    document.getElementById('qn-title').innerText = data.title || 'No Title';
+    document.getElementById('qn-description').innerText = data.description || 'No Description';
 
     const constraintsContainer = document.getElementById('qn-constraints');
     if (constraintsContainer && data.constraints) {
@@ -178,13 +183,18 @@ function renderContent(data) {
             <div class="example-block">
                 <h4>Example ${index + 1}:</h4>
                 <pre>
-<strong>Input:</strong> ${ex.input}
-<strong>Output:</strong> ${ex.output}
-<strong>Explanation:</strong> ${ex.explanation}
+<strong>Input:</strong> ${ex.input || 'N/A'}
+<strong>Output:</strong> ${ex.output || 'N/A'}
+<strong>Explanation:</strong> ${ex.explanation || 'N/A'}
                 </pre>
             </div>
         `).join('');
     }
 }
 
-loadQuestionData();
+socket.on('init-room-data', (data) => {
+    if (data.questionId) {
+        console.log("Got ID from server, fetching details...");
+        loadQuestionData(data.questionId); // NOW you fetch
+    }
+});
