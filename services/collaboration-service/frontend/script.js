@@ -17,7 +17,7 @@ socket.on('disconnect', () => {
 
 require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs' }});
 
-require(['vs/editor/editor.main'], function() {
+require(['vs/editor/editor.main'], async function() {
     // Create the editor instance inside your #editor-container div
     const editor = monaco.editor.create(document.getElementById('editor-container'), {
         value: "// Start collaborating on PeerPrep G09!",
@@ -26,27 +26,31 @@ require(['vs/editor/editor.main'], function() {
         automaticLayout: true // Ensures editor resizes with the panel
     });
 
-    editor.onDidChangeModelContent((event) => {
-        // Only emit if the change was made by the user (not by a socket update)
-        if (!editor.isUpdatingFromRemote) {
-            const code = editor.getValue();
-            socket.emit('code-change', { roomId, code });
-        }
-    });
+    const Y = await import('https://esm.sh/yjs');
+    const { WebsocketProvider } = await import('https://esm.sh/y-websocket');
+    const { MonacoBinding } = await import('https://esm.sh/y-monaco');
 
-    socket.on('receive-code', (newCode) => {
-        const currentCode = editor.getValue();
-        if (newCode !== currentCode) {
-            // Use a flag to prevent infinite loops of emitting/receiving
-            editor.isUpdatingFromRemote = true;
-            editor.setValue(newCode);
-            editor.isUpdatingFromRemote = false;
-        }
-    });
+    const ydoc = new Y.Doc();
+
+    const provider = new WebsocketProvider(
+        'ws://localhost:1234',
+        roomId,
+        ydoc
+    );
+
+    const ytext = ydoc.getText('monaco');
+
+    const binding = new MonacoBinding(
+        ytext,
+        editor.getModel(),
+        new Set([editor]),
+        provider.awareness
+    );
+
+    provider.on('status', (e) => console.log('[yjs status]', e.status));
 });
 
 socket.on('user-left', (message) => {
-    // You could update the statusLabel or use a toast notification
     statusLabel.innerText = "online";
     statusLabel.className = "status-offline";
     
@@ -77,12 +81,10 @@ function startCountdown(durationMs) {
     timerInterval = setInterval(() => {
         timeLeft -= 1000;
 
-        // 1-minute warning (60 seconds)
         if (timeLeft <= 60000 && timeLeft > 59000) {
             showWarning("Warning: 1 minute remaining before session ends!");
         }
 
-        // Timer finished
         if (timeLeft <= 0) {
             clearInterval(timerInterval);
             terminateMeeting();
