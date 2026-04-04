@@ -127,17 +127,6 @@ socket.on('user-count-update', (count) => {
     }
 });
 
-document.addEventListener('DOMContentLoaded', () => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const question = urlParams.get('question');
-
-    console.log("Full Search String:", window.location.search); 
-    
-    if (question) {
-        console.log("Fetching data for:", question);
-    }
-});
-
 async function loadQuestionData(questionId) {
     if (questionId) {
         try {
