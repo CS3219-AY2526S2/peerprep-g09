@@ -6,13 +6,14 @@ services:
     image: redis:alpine
     ports:
       - "6379:6379"
-  # 1. Question Service
+
+  # 2. Question Service
   question-service:
     build: ./services/question-service
     ports:
       - "8081:8081"
   
-  # 2. Matching Service
+  # 3. Matching Service
   matching-service:
     build: ./services/matching-service
     ports:
@@ -22,8 +23,15 @@ services:
       - QUESTION_SERVICE_URL=http://question-service:8081 # Adjust if needed
     depends_on:
       - redis
+      - question-service
 
-  # 3. Frontend (Next.js)
+  # 4. Collaboration Service
+  collaboration-service:
+    build: ./services/collaboration-service
+    ports:
+      - "8084:8084"
+
+  # 5. Frontend (Next.js)
   frontend:
     build: ./frontend
     ports:
