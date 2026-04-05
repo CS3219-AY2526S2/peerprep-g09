@@ -18,7 +18,7 @@ export default function CollaborationPage() {
         </div>
 
         {/* Bottom: Terminal */}
-        <div className="h-40 flex-shrink-0">
+        <div className="h-40 shrink-0">
           <TerminalArea />
         </div>
       </div>

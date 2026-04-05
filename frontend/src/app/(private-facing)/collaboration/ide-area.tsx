@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 
 export function IDEArea() {
   return (
-    <Card className="bg-tile h-full border-1">
+    <Card className="bg-tile h-full border">
       <CardHeader className="flex flex-row items-center justify-between border-b">
         <CardTitle className="text-lg">Code Editor</CardTitle>
         <div className="flex gap-2">
