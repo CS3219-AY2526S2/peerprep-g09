@@ -45,6 +45,9 @@ export default function MatchMaking() {
   const serviceUrl =
     process.env.NEXT_PUBLIC_MATCHING_SERVICE_URL?.trim() ||
     "http://localhost:8082";
+  const collaborationUrl =
+    process.env.NEXT_PUBLIC_COLLAB_SERVICE_URL?.trim() ||
+    "http://localhost:8084";
 
   const [topics, setTopics] = useState<string[]>(DEFAULT_TOPICS);
   const [difficulties, setDifficulties] =
@@ -66,8 +69,24 @@ export default function MatchMaking() {
 
   const socketARef = useRef<Socket | null>(null);
   const socketBRef = useRef<Socket | null>(null);
+  const hasRedirectedRef = useRef(false);
 
   const queueKeys = useMemo(() => Object.keys(status).sort(), [status]);
+
+  function redirectToCollaboration(payload: MatchEvent) {
+    if (hasRedirectedRef.current) return;
+    hasRedirectedRef.current = true;
+
+    const questionId = payload.question?.id;
+    const roomPath = `/collab/${encodeURIComponent(payload.roomId)}`;
+    const roomUrl = new URL(roomPath, collaborationUrl);
+
+    if (typeof questionId === "string" && questionId.trim().length > 0) {
+      roomUrl.searchParams.set("questionId", questionId);
+    }
+
+    window.location.assign(roomUrl.toString());
+  }
 
   useEffect(() => {
     async function loadTopics() {
@@ -138,6 +157,9 @@ export default function MatchMaking() {
         setUserA,
         `Matched with ${payload.partner} in ${payload.roomId}${title}`,
       );
+      setTimeout(() => {
+        redirectToCollaboration(payload);
+      }, 1000);
     });
     socketB.on("match_found", (payload: MatchEvent) => {
       const title = payload.question?.title
@@ -147,6 +169,9 @@ export default function MatchMaking() {
         setUserB,
         `Matched with ${payload.partner} in ${payload.roomId}${title}`,
       );
+      setTimeout(() => {
+        redirectToCollaboration(payload);
+      }, 1000);
     });
 
     socketA.on("match_timeout", (payload: { message?: string }) => {

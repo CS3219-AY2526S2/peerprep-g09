@@ -1,5 +1,7 @@
 const socket = io();
 const roomId = window.location.pathname.split('/').pop();
+const wsScheme = window.location.protocol === 'https:' ? 'wss' : 'ws';
+const yjsServerUrl = `${wsScheme}://${window.location.hostname}:1234`;
 
 const statusLabel = document.getElementById('connection-status');
 
@@ -33,7 +35,7 @@ require(['vs/editor/editor.main'], async function() {
     const ydoc = new Y.Doc();
 
     const provider = new WebsocketProvider(
-        'ws://localhost:1234',
+        yjsServerUrl,
         roomId,
         ydoc
     );
