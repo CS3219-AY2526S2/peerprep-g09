@@ -55,6 +55,7 @@ export function LoginForm({
       // On successful login, store tokens and redirect
       localStorage.setItem("accessToken", data.accessToken);
       localStorage.setItem("refreshToken", data.refreshToken);
+      localStorage.setItem("uid", data.uid);
       setSuccess(true);
 
       // Redirect to the lobby after a short delay
