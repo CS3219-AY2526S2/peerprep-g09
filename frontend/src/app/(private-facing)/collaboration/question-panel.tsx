@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export function QuestionPanel() {
   return (
-    <Card className="bg-tile h-full border-2">
+    <Card className="bg-tile h-full border-1">
       <CardHeader className="border-b">
         <CardTitle className="text-lg">Problem Description</CardTitle>
       </CardHeader>
