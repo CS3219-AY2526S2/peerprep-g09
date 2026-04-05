@@ -1,5 +1,4 @@
 import express from 'express';
-import cors from 'cors';
 import userRoutes from './routes/user-routes.js';
 import { initCleanupCron } from './tasks/cleanup.js';
 
