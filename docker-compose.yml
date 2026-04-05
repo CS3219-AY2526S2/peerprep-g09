@@ -6,7 +6,12 @@ services:
     image: redis:alpine
     ports:
       - "6379:6379"
-
+  # 1. Question Service
+  question-service:
+    build: ./services/question-service
+    ports:
+      - "8081:8081"
+  
   # 2. Matching Service
   matching-service:
     build: ./services/matching-service
