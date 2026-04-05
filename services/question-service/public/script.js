@@ -42,7 +42,8 @@ const fetchTopics = async () => {
     throw new Error("Failed to load topics");
   }
   
-  return response.json();
+  const data = await response.json();
+  return Array.isArray(data) ? data : data.topics || [];
 }
 
 const fetchDifficulties = async () => {
@@ -52,7 +53,8 @@ const fetchDifficulties = async () => {
     throw new Error("Failed to load difficulties");
   }
   
-  return response.json();
+  const data = await response.json();
+  return Array.isArray(data) ? data : data.difficulties || [];
 }
 
 const renderTopicOptions = () => {

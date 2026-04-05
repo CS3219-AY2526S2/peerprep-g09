@@ -134,7 +134,7 @@ export const handleDisconnect = async (socket: Socket) => {
 
 const fetchQuestion = async (category: string, difficulty: string) => {
   try {
-    const res = await axios.get(`${QUESTION_SERVICE_URL}/`, {
+    const res = await axios.get(`${QUESTION_SERVICE_URL}/api/questions/random`, {
       params: { category, difficulty },
     });
     return res.data;
