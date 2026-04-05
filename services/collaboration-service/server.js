@@ -5,7 +5,6 @@ import {Server} from 'socket.io'
 import {fileURLToPath} from 'url';
 
 import collabRouter from './routes/collab.js'
-import testCollabRouter from './routes/testCollab.js'
 
 const app = express();
 const server = http.createServer(app);
@@ -19,9 +18,6 @@ app.use(express.json());
 
 app.use('/collab', collabRouter);
 
-// for testing
-app.use('/testCollab', testCollabRouter)
-
 app.get('/', (req, res) => {
     res.send('Main PeerPrep Landing Page');
 });
@@ -33,7 +29,7 @@ const roomTimers = new Map()
 
 // Global Socket Logic
 io.on('connection', (socket) => {
-    socket.on('join-room', (roomId) => {
+    socket.on('join-room', (roomId, questionId) => {
         socket.join(roomId);
 
         if (!roomTimers.has(roomId)) {
@@ -52,14 +48,17 @@ io.on('connection', (socket) => {
                 }
             }, duration + 5000);
 
-            roomTimers.set(roomId, { startTime, duration, cleanupTask });
+            roomTimers.set(roomId, { startTime, duration, questionId, cleanupTask });
             console.log(`[RESOURCES ALLOCATED] Room ${roomId} created.`);
+
         }
 
         const roomData = roomTimers.get(roomId);
         const currentTime = Date.now();
         const elapsed = currentTime - roomData.startTime;
         const remaining = Math.max(0, roomData.duration - elapsed);
+
+        socket.emit('init-room-data', { questionId: roomData.questionId });
 
         socket.emit('timer-update', { 
             remaining, 
@@ -70,10 +69,6 @@ io.on('connection', (socket) => {
         updateUserCount(roomId);
 
         socket.to(roomId).emit('user-joined', 'A collaborator has entered.');
-    });
-
-    socket.on('code-change', (data) => {
-        socket.to(data.roomId).emit('receive-code', data.code);
     });
 
     // Handle the moment right before the user leaves
@@ -96,7 +91,7 @@ const updateUserCount = (roomId) => {
     console.log(`[Server] Room ${roomId} now has ${count} user(s).`);
 };
 
-const PORT = 3000
+const PORT = 8084
 server.listen(PORT, () => {
-    console.log('Server running on http://localhost:3000');
+    console.log('Server running on http://localhost:8084');
 });

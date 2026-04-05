@@ -15,6 +15,12 @@
     "express": "^5.2.1",
     "firebase-admin": "^13.7.0",
     "monaco-editor": "^0.55.1",
-    "socket.io": "^4.8.3"
+    "socket.io": "^4.8.3",
+    "y-monaco": "^0.1.6",
+    "y-websocket": "^3.0.0",
+    "yjs": "^13.6.30"
+  },
+  "devDependencies": {
+    "@y/websocket-server": "^0.1.5"
   }
 }
