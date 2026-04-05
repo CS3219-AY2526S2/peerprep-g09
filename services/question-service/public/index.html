@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Question Service Admin</title>
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="layout">
+      <section class="panel">
+        <h1>Question Service</h1>
+        <p class="muted">Use a Firebase ID token from the user service to test role-based CRUD.</p>
+
+        <label for="token">Bearer Token</label>
+        <textarea id="token" rows="6" placeholder="Paste Firebase ID token here"></textarea>
+
+        <div class="filters">
+          <div>
+            <label for="difficultyFilter">Difficulty</label>
+            <select id="difficultyFilter">
+              <option value="">All</option>
+              <option value="easy">Easy</option>
+              <option value="medium">Medium</option>
+              <option value="hard">Hard</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="topicFilter">Topic</label>
+            <select id="topicFilter">
+              <option value="">All</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button id="loadQuestionsButton">Load Questions</button>
+          <button id="seedQuestionsButton">Seed Sample Data</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Create / Update Question</h2>
+        <input id="questionId" type="hidden" />
+
+        <label for="title">Title</label>
+        <input id="title" type="text" placeholder="Two Sum" />
+
+        <label for="description">Description</label>
+        <textarea id="description" rows="5"></textarea>
+
+        <div class="filters">
+          <div>
+            <label for="difficulty">Difficulty</label>
+            <select id="difficulty">
+              <option value="easy">Easy</option>
+              <option value="medium">Medium</option>
+              <option value="hard">Hard</option>
+            </select>
+          </div>
+
+          <div>
+            <label>Topics</label>
+            <div id="topics-container">
+              </div>
+          </div>
+        </div>
+
+        <label for="constraints">Constraints</label>
+        <textarea id="constraints" rows="3" placeholder="One per line"></textarea>
+
+        <label for="examples">Examples</label>
+        <textarea
+          id="examples"
+          rows="6"
+          placeholder='[{"input":"nums=[2,7,11,15], target=9","output":"[0,1]","explanation":"Use a hashmap."}]'
+        ></textarea>
+
+        <label for="sourceUrl">Source URL</label>
+        <input id="sourceUrl" type="text" placeholder="https://leetcode.com/problems/two-sum/" />
+
+        <label for="imageUrl">Image URL</label>
+        <input id="imageUrl" type="text" placeholder="Optional image URL" />
+
+        <div class="actions">
+          <button id="saveQuestionButton">Save Question</button>
+          <button id="resetFormButton" class="secondary">Reset Form</button>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Questions</h2>
+        <p id="statusMessage" class="muted">Waiting for action.</p>
+        <div id="questionsList" class="question-list"></div>
+      </section>
+    </main>
+
+    <script type="module" src="./script.js"></script>
+  </body>
+</html>

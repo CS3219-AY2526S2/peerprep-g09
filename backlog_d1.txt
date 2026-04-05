@@ -1,0 +1,615 @@
+        CS3219: Project Milestone 1 (D1)
+                                 Group 09
+No.   Full Name (as in EduRec)              Student Number (Axxxx)
+1     Ngo Hoang Nhat Minh                   A0301185N
+2     Presley Chew Jie Lun                  A0269920W
+3     Qin Haichen                           A0214409L
+4     Tasmia Haque                          A0282154H
+5     Waylon Tan                            A0273167Y
+   CS3219: Project Milestone 1                                                             Group 09
+
+
+   Product Backlog
+       1. Functional Requirements
+                                                                                           Planned
+Functional Requirements                                                       Priority Sprint/iteration
+M1 User Service
+M1F1 Account Creation
+    M1F1.1 PeerPrep should allow user to register using email/password         High           1
+          M1F1.1.1 PeerPrep should ensure that email used for
+          registration is verified via REGEX for its format                    High           1
+          M1F1.1.2 PeerPrep should ensure that email used is unique            High           1
+          M1F1.1.3 PeerPrep should ensure that passwords should be
+          validated based on rules such as containing upper- and lower-
+          case letters and numbers, minimum length, etc.                                      1
+                                                                               Med
+          M1F1.1.4 PeerPrep should ensure that registered email should
+          be confirmed using an OTP based mechanism                            High           2
+
+          M1F1.1.5 PeerPrep should ensure that detailed error message
+          must be shown for parameters not following constrains                Med            1
+
+          M1F1.1.6 PeerPrep should assign a default role (User) to every
+          newly registered account                                             Med            1
+
+          M1F1.1.7 PeerPrep should store the user's role within the
+          authentication token (JWT) and the database profile to facilitate
+          access control checks on protected routes.                           Med            1
+
+     M1F1.2 PeerPrep should allow users to link/sign-in via Google
+     (OAuth2)                                                                   Low           3
+
+     M1F1.3 PeerPrep should allow users to set a display name and upload
+     a profile picture                                                          Low           3
+
+M1F2 Account Management
+
+     M1F2.1 PeerPrep should allow user to change their email/password          Med            2
+
+          M1F2.1.1 PeerPrep should ensure that user should be
+          authenticated before they are allowed to make changes                Med            2
+
+
+
+                                                                                                      2
+   CS3219: Project Milestone 1                                                       Group 09
+
+
+           M1F2.1.2 PeerPrep should ensure that new password should be
+           validated based on rules such as containing upper- and lower-
+           case letters and numbers, minimum length, etc.                     Med      2
+
+           M1F2.1.3 PeerPrep should ensure that new email used should
+           be unique                                                          Med      2
+
+           M1F2.1.4 PeerPrep should ensure that new email used is
+           verified via REGEX for its format                                  Med      2
+
+           M1F2.1.5 PeerPrep should ensure that updating of
+           email/password is to be confirmed using an OTP based
+           mechanism                                                          Med      2
+
+           M1F2.1.6 PeerPrep should ensure that detailed error message
+           must be shown for parameters not following constrains              Med      2
+
+      M1F2.2 PeerPrep should allow user to delete their account
+      permanently and their associated data                                   Low      3
+
+      M1F2.3 PeerPrep should allow user to change their display name and
+      profile picture                                                         Low      3
+
+M1F3 Authentication
+
+      M1F3.1 PeerPrep should allow users to recover accounts via a
+      "Forgot Password" email link/OTP                                        High     2
+
+      M1F3.2 PeerPrep should provide a logout function that invalidates
+      the user's JWT token                                                    High     1
+
+      M1F3.3 PeerPrep should authenticate users and issue a short-lived
+      access token and a long-lived refresh token to maintain user sessions
+      securely                                                                High     1
+
+      M1F3.4 PeerPrep should limit login/OTP attempts to prevent brute-
+      force attacks                                                           High     2
+
+M1F4 Progress Tracking
+
+       M1F4.1 PeerPrep should display the number of questions the user
+       has attempted per category                                             Med      3
+
+       M1F4.2 PeerPrep should display the number of questions the user
+       has completed per category                                             Med      3
+
+
+                                                                                                3
+   CS3219: Project Milestone 1                                                           Group 09
+
+
+        M1F4.3 PeerPrep should display the average time the user takes to
+        complete each question                                              Low              3
+
+
+
+                                                                                           Planned
+M2 Matching Service                                                         Priority   Sprint/iteration
+M2F1 Queue Entry Validation
+       M2F1.1 PeerPrep must validate selected topic and difficulty           High             1
+           M2F.1.1.1 PeerPrep must maintain a list of predefined
+           supported topics and difficulties                                 High             1
+           M2F.1.1.2 PeerPrep must reject invalid topics or difficulty
+                                                                             High             1
+           selections
+           M2F.1.1.3 PeerPrep must reject queue requests with missing
+                                                                             High             1
+           topics or difficulty
+           M2F1.1.4 PeerPrep may default to user's previous selection        Low              3
+
+
+M2F2 Queue Management
+       M2F2.1 PeerPrep must enqueue users into topic-specific
+       matchmaking queues                                                    High             1
+                                                                             High             1
+       M2F2.2 PeerPrep must prevent duplicate queue entries
+       M2F2.3 PeerPrep must remove users from queue upon WebSocket
+                                                                             High             1
+       disconnect
+
+M2F3 Matching Logic
+       M2F3.1 PeerPrep should prioritize matching users with the same
+       topic                                                                 High             1
+
+       M2F3.2 PeerPrep should match users with difficulty difference of at
+       most 1 level                                                        Medium             2
+
+       M2F3.3 PeerPrep may calculate estimated wait time using queue
+                                                                             Low              3
+       length and historical matching rates
+M2F4 Timeout Handling
+
+       M2F4.1 PeerPrep must detect unmatched users after 60 seconds          High             1
+
+       M2F4.2 PeerPrep must notify user on timeout                           High             1
+
+
+
+
+                                                                                                      4
+    CS3219: Project Milestone 1                                                              Group 09
+
+
+        M2F4.3 PeerPrep should prompt the user to retry matchmaking or
+        exit on timeout                                                         Medium            2
+
+             M2F4.3.1 PeerPrep should allow retry with the same filters;
+             wider difficulty range; or different topic selection               Medium            2
+
+M2F5 Session Initialization
+
+        M2F5.1 PeerPrep must atomically lock matched users                       High             1
+
+        M2F5.2 PeerPrep must create a session with session_id, both
+        user_ids, and question_id                                                High             1
+
+             M2F5.2.1 PeerPrep should store session information into the
+             database                                                           Medium            2
+
+M2F6 Failure Recovery
+
+        M2F6.1 PeerPrep must requeue user if they got disconnected during
+        match finalization                                                       High             1
+
+        M2F6.2 PeerPrep must prioritize requeued user                            High             1
+
+
+
+
+                                                                                               Planned
+Question Service                                                                Priority   Sprint/iteration
+M3F1 Providing a question for each session
+        M3F1.1 PeerPrep should provide a question id when the matching
+                                                                                 High             1
+        service requests one after a successful match
+                M3F1.1.1 PeerPrep should select a question randomly
+                matching the difficulty and topic the users requested for        High             1
+                M3F1.1.2 PeerPrep should prioritize providing a question that
+                neither user has attempted before                                Low              3
+                        M3F1.1.2.1 PeerPrep should be able to obtain the
+                                                                                 Low              3
+                        matching users’ progress record from user service
+        M3F1.2 PeerPrep should provide the question title, question
+        description and other relevant context of the question to the
+        requesting collaboration service for initializing a session              High             1
+
+
+
+                                                                                                          5
+   CS3219: Project Milestone 1                                                        Group 09
+
+
+       M3F1.3 PeerPrep’s question service should provide the suggested
+       solution with the question                                            Medium      2
+
+M3F2 Question repository
+       M3F2.1 Questions stored should be of varying difficulty from
+       beginner to advanced                                                  Medium      2
+
+           M3F2.1.1 Questions stored internally should have a difficulty
+           label to it                                                       Medium      2
+
+       M3F2.2 Questions stored should cover all topics promised to users      Low        3
+
+           M3F2.2.1 Questions stored internally should have a topics label
+           to it                                                              High       1
+
+       M3F2.3 PeerPrep should support storing images with the question        Low        3
+
+              M3F2.3.1 Images should be stored via object storage and
+              accessed with URL                                               Low        3
+
+M3F3 Question management interface
+
+       M3F3.1 PeerPrep should verify that a question has a name, topic
+       label, difficulty level, test cases and solution before creation       High       1
+
+           M3F3.1.2 Question name should be unique                            High       1
+
+           M3F3.1.3 Difficulty level can be chosen to be beginner,
+           intermediate or advanced                                           High       1
+
+           M3F3.1.4 Topic should be one of the topics stored in Question
+           Service’s topic catalog                                            High       1
+
+       M3F3.2 PeerPrep should allow admins to update a question’s details Medium         2
+
+           M3F3.2.1 PeerPrep should validate the edited question before
+           updating it                                                  Medium           2
+
+       MF3.3 PeerPrep should allow admins to delete a question                Low        3
+
+           M3F3.3.1 PeerPrep should require extra confirmation needed to
+           guard against accidental deletion                                  Low        3
+
+                      M3F3.3.1 Deleting a question that have been
+                      attempted and referenced in user history should
+                      result in archival instead                              Low        3
+
+                                                                                                 6
+   CS3219: Project Milestone 1                                                            Group 09
+
+
+       M3F3.4 PeerPrep should provide a user-friendly interface for
+       question management                                                   Medium            2
+
+            M3F3.4.1 Admins should be able to save a draft of question
+            before releasing it                                              Medium            2
+
+
+
+                                                                                            Planned
+Collaboration Service                                                        Priority   Sprint/iteration
+M4F1 PeerPrep sessions must be secure when a meeting is in progress
+between 2 users.                                                              High             1
+        M4F1.1 Only users who are authenticated can begin a meeting with
+        each other                                                            High             1
+        M4F1.2 A unique ID must be generated for each meeting                 High             1
+M4F2 PeerPrep should display text selections                                  Low              3
+
+       M4F2.1 The color of the cursor for each user should be different so
+       that users can identify which is their cursor                          Low              3
+
+       M4F2.2 The text selected must be highlighted for both users to be
+       able to see                                                            Low              3
+
+M4F3 PeerPrep must be able to synchronise code changes between users
+with minimal latency.                                                        Medium
+
+       M4F3.1 PeerPrep must reflect all code changes made by one user to
+       the other user                                                    Medium                2
+       M4F3.2 PeerPrep must be able to deal with conflicts when users
+       attempt to change the code simultaneously                             Medium            2
+       M4F3.3 PeerPrep must allow both users to code to edit concurrently
+       without getting blocked by each other’s actions                        High             1
+
+M4F4 PeerPrep must allow users to terminate the meeting, as they wish         High             1
+
+       M4F4.1 PeerPrep must prompt users to confirm that the meeting is
+       being ended                                                            High             1
+
+       M4F4.2 After the session is terminated, there should be a notification
+       sent to both users to notify that the meeting has ended successfully Medium             2
+
+M4F7 PeerPrep must ensure resource allocation is efficient
+
+
+
+
+                                                                                                       7
+   CS3219: Project Milestone 1                                                          Group 09
+
+
+       M4F7.1 Meetings are automatically terminated when 1 hour time
+       limit is reached.                                                      High            1
+
+       M4F7.2 Users are notified about the meeting going to be terminated
+       10 minutes before the end of the time limit.                       Medium              2
+
+M4F6 PeerPrep must allow users to resume the meeting when a user gets
+disconnected                                                                 Medium           2
+
+       M2F6.1 If a user gets disconnected unexpectedly, they should be able
+       to reconnect and join within 5 minutes without losing the current
+       session state.                                                       Medium            2
+
+M4F7 PeerPrep must allow participants to make gracious exits                  High            1
+
+       M4F7.1 When one of the users want to leave the meeting, the other
+       user is notified about this.                                           High            1
+
+       M4F7.2 When there is only 1 user in the meeting, the user can
+       continue to stay or leave the meeting.                                 High            1
+
+
+       2. Non-Functional Requirements
+                                                                                       Planned
+Non-Functional Requirements                                               Priority Sprint/iteration
+M1 User Service
+M1NFR1 Security
+    M1NFR1.1 Passwords must be hashed using with salt, handled with
+    firebase                                                               High           1
+    M1NFR1.2 Email addresses and IP logs must be encrypted at rest
+    using AES-256 encryption                                               Med            3
+
+    M1NFR1.3 All data in transit must be encrypted via TLS 1.3 (HTTPS).
+    Data at rest must be encrypted using provider-managed AES-256          High           1
+
+    M1NFR1.4 OTP link generated by firebase must be limited to 1 time
+    use and must be cryptographically random                               High           2
+
+    M1NFR1.5 JWT Token must expire within 7 days                           High           1
+
+    M1NFR1.6 Password reset token must expire within 30 minutes            High           2
+
+
+
+
+                                                                                                      8
+   CS3219: Project Milestone 1                                                              Group 09
+
+
+    M1NFR1.7 Strict enforcement rules to prevent individuals from
+    sending PATCH requests to amend their role                                High            2
+
+M1NFR2 Performance and Scalability
+
+    M1NFR2.1 Authentication latency must be no more than 300
+    millisecond                                                               High            1
+
+    M1NFR2.2 Account creation and updating must be no more than 2
+    second                                                                    Med             1
+
+    M1NFR2.3 The User Service must handle at least 100 requests per
+    second for login/token refresh without a rise in error rate of more
+    than 1%                                                                   Med             2
+
+    M1NFR2.4 The User Service must be able to handle 5000 concurrent
+    user sessions                                                             Med             2
+
+    M1NFR2.5 The database must be able to handle up to 100,000 user
+    accounts                                                                  High            1
+
+M1NFR3 Reliability
+
+    M1NFR3.1 The User Service must target a 99.5% uptime                      High            1
+
+    M1NFR3.2 Automated daily backups of the User Database, with a
+    Recovery Point Objective (RPO) of 24 hours                                Med             3
+
+    M1NFR3.3 If the Email OTP services fail, the system must log the
+    error and allow retry logic rather than crashing the registration flow.   Med             2
+
+    M1NFR4 The service must be deployed using process manager that
+    automatically restarts the service in the event of run time error         High            1
+
+M1NFR4 Usability and Maintainability
+
+    M1NFR4.1 All User Service endpoints must be documented using
+    Swagger standards                                                         Low             3
+
+    M1NFR4.2 The API must return standard HTTP Status Codes                   High            1
+
+
+
+
+                                                                                              Planned
+M2 Matching Service                                                            Priority   Sprint/iteration
+
+                                                                                                         9
+    CS3219: Project Milestone 1                                                           Group 09
+
+
+M2NFR1 Performance
+     M2NFR1.1 The matchmaking process must complete or timeout within
+     60 seconds for 95% of users                                              High             1
+     M2NFR1.2 PeerPrep should notify matched users within 1 seconds          Medium            2
+
+M2NFR2 Security
+     M2NFR2.1 Only authenticated users can join the queue                     High             1
+
+     M2NFR2.2 Only authorized services may query queue state                  High             1
+
+M2NFR3 Reliability & Availability
+     M2NFR3.1 The matching service must maintain 99.5% availability during
+     peak hours                                                               High             1
+
+
+     M2NFR3.2 Automatic recovery from crash should be under 30s               High             1
+
+M2NFR4 Scalability Requirements
+
+     M2NFR4.1 The matchmaking service should support more than 1,000
+     concurrent users                                                         High             1
+
+     M2NFR4.2 The service should be able to scale up to 5,000 users           Low              3
+
+
+
+                                                                                            Planned
+M3 Question Service                                                          Priority   Sprint/iteration
+M3NFR1 Question variety
+     M3NFR1.1 There should be at least 15 questions for every combination
+     of difficulty and topic                                                  Low              3
+M3NFR2 Question retrieval
+     M3NFR2.1 A suitable question should be retrieved within 0.5 seconds      High             1
+     M3NFR2.2 PeerPrep should handle at least 50 concurrent question
+     requests per second                                                     Medium            2
+M3NFR3 Security
+
+     M3NFR3.1 Only authorized admins should be able to make changes to
+     the question repository                                                  High             1
+
+M3NFR4 Question format
+
+     M3NFR4.1 Questions provided should be rendered in Markdown               High             1
+
+
+                                                                                                      10
+   CS3219: Project Milestone 1                                                            Group 09
+
+
+    M3NFR4.2 Questions stored in the repository should not have duplicate
+    names                                                                     High             1
+
+    M3NFR4.3 PeerPrep should support up to 2000 characters for question
+    description                                                               High             1
+
+    M3NFR4.4 PeerPrep should support images of size up to 1MB for each
+    question                                                                  Low              3
+
+
+
+                                                                                            Planned
+Collaboration Service                                                        Priority   Sprint/iteration
+M4NF1 Performance requirements (real-time responsiveness)
+    M4NF1.1 The collaboration service shall propagate user edits to the peer
+    with end-to-end latency ≤ 250 ms under normal load.                      Medium                        2
+M4NF2 Graceful session termination
+
+    M4NF2.1 When the users want to leave the meeting, the meeting should
+    be terminated within 200ms.                                          High                              1
+    M4NF2.2 On termination, sessions should release all session resources
+    within 30s.                                                           Medium                           2
+
+M4NF3 Reliability requirements
+
+    M4NF3.1 Meetings must maintain 99.9% uptime during active time
+    usage.                                                                  Low                            3
+
+    M4NF3.2 In the case of network disruptions, the system must enable
+    reconnection.                                                           Medium                         2
+
+    M4NF3.3 The session state must be recovered after temporary
+    disruptions.                                                            Medium                         2
+
+M4NF4 Scalability requirements
+
+    M4NF4.1 The service shall support a minimum of 2 concurrent
+    collaborators per session with no functional degradation.               High                           1
+
+    M4NF4.2 The platform needs to support up to 500 simultaneous
+    meetings.                                                               Low                            3
+
+
+
+
+                                                                                                      11
+   CS3219: Project Milestone 1                                                              Group 09
+
+
+                                                                                             Planned
+Containerization and deployment                                               Priority   Sprint/iteration
+M5NFR1 Portability
+    M5NFR1.1 All services should be containerized with Docker
+    M5NFR1.2 Container images should be compatible with Windows,
+    Linux and macOS
+
+M5NFR2 Resource requirements
+    M5NFR2.1 Container should run efficiently on system with 8GB of RAM
+M5NFR3 Performance
+
+    M5NFR3.1 Containers should become ready within 30 seconds
+
+    M5NFR3.2 Containerization strategy should consider scaling in terms of
+    database growth
+
+
+
+   Note: The entries in the planned sprint/iteration column in the above table should be aligned
+   with the project plan. While we have not asked to develop a project plan explicitly, you will
+   still need a project plan. Include it as a separate section within this product backlog. You
+   can choose any format for the project plan, for example, a Gantt chart to show the overall
+   project plan.
+
+       3. Selected Nice-to-haves
+                                                                                             Planned
+Service Enhancements (Functional requirements)                                Priority   Sprint/iteration
+F1 PeerPrep should provide an advanced code editor with enhanced IDE
+features.
+
+    F1.1 PeerPrep must support syntax highlighting for languages like
+    Python and JS
+
+    F1.2 PeerPrep must implement real-time syntax linting to provide visual
+    feedback for coding errors as the user types.
+
+F2 PeerPrep should provide real-time communication channels between
+matched peers.
+
+    F2.1 PeerPrep should allow users to establish a peer-to-peer voice
+    communication channel within the session.
+
+
+
+                                                                                                        12
+   CS3219: Project Milestone 1                                               Group 09
+
+
+F3 PeerPrep should allow users to validate their solution through code
+execution.
+
+    F3.1 PeerPrep should allow users to execute their code in a remote
+    environment and view the standard output and error messages in a
+    dedicated console.
+
+    F3.2 PeerPrep should provide a terminal-like interface to display code
+    execution results, including execution time and status (e.g., Success,
+    Timeout).
+
+    F3.3 PeerPrep should implement resource limits (e.g., 5-second
+    timeout) to prevent infinite loops during execution.
+
+     F3.4 Peerprep should allow admins to include sample test cases in
+the question for users to validate their code
+
+
+Service Enhancements (Non functional requirements)
+NF1 PeerPrep should ensure that the end-to-end audio latency for voice
+chat shall be ≤ 200 s to ensure natural conversation.
+
+NF2 Code execution must be performed in a sandboxed environment
+(Kubernetes/Docker) to prevent unauthorized access to the host system.
+
+
+
+
+                                                                                        13
+CS3219: Project Milestone 1                                      Group 09
+
+
+   4. UI Mockup/screenshots
+https://www.figma.com/site/qBoUDGjooO7G0sUQ9LKpbt/CS3219-G9-UI?node-id=0-
+3&t=owuh5zdeTFsegtcS-1
+
+
+
+
+                                 Home Page
+
+
+
+
+                                                                            14
+CS3219: Project Milestone 1                         Group 09
+
+
+
+
+                              Authentication Page
+
+
+
+
+                              Collaboration Page
+
+                                                               15
+
