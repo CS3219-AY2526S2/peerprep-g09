@@ -8,6 +8,8 @@ services:
       - "6379:6379"
 
   # 2. Question Service
+
+  # 2. Question Service
   question-service:
     build: ./services/question-service
     ports:
