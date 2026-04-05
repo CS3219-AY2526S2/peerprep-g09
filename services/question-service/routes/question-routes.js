@@ -14,12 +14,62 @@ const mapQuestionDocument = (doc) => ({
   ...doc.data(),
 });
 
+const normalizeDifficulty = (difficulty) =>
+  difficulty ? String(difficulty).trim().toLowerCase() : "";
+
+const normalizeTopic = (topic) => (topic ? String(topic).trim().toLowerCase() : "");
+
+const getRandomQuestionByFilters = async (difficulty, topic) => {
+  const normalizedDifficulty = normalizeDifficulty(difficulty);
+  const normalizedTopic = normalizeTopic(topic);
+
+  if (!normalizedDifficulty || !normalizedTopic) {
+    return {
+      error: "Both difficulty and topic query parameters are required.",
+      status: 400,
+    };
+  }
+
+  if (!ALLOWED_DIFFICULTIES.includes(normalizedDifficulty)) {
+    return {
+      error: "Invalid difficulty provided.",
+      status: 400,
+    };
+  }
+
+  if (!ALLOWED_TOPICS.includes(normalizedTopic)) {
+    return {
+      error: "Invalid topic provided.",
+      status: 400,
+    };
+  }
+
+  const snapshot = await questionsCollection
+    .where("difficulty", "==", normalizedDifficulty)
+    .where("topics", "array-contains", normalizedTopic)
+    .get();
+
+  const questions = snapshot.docs.map(mapQuestionDocument);
+
+  if (questions.length === 0) {
+    return {
+      error: "No matching question found.",
+      status: 404,
+    };
+  }
+
+  return {
+    question: questions[Math.floor(Math.random() * questions.length)],
+    status: 200,
+  };
+};
+
 router.get("/metadata/difficulties", (req, res) => {
-  res.status(200).json(ALLOWED_DIFFICULTIES);
+  res.status(200).json({ difficulties: ALLOWED_DIFFICULTIES });
 });
 
 router.get("/metadata/topics", (req, res) => {
-  res.status(200).json(ALLOWED_TOPICS);
+  res.status(200).json({ topics: ALLOWED_TOPICS });
 });
 
 router.get("/", verifyAuthenticated, async (req, res) => {
@@ -45,6 +95,38 @@ router.get("/", verifyAuthenticated, async (req, res) => {
     res.status(500).json({ error: "Failed to fetch questions." });
   }
 });
+
+router.get("/random", async (req, res) => {
+  try {
+    const { difficulty, topic, category } = req.query;
+    const result = await getRandomQuestionByFilters(difficulty, topic || category);
+
+    if (result.error) {
+      return res.status(result.status).json({ error: result.error });
+    }
+
+    res.status(200).json(result.question);
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch random question." });
+  }
+});
+
+router.get("/editinfo/:id", verifyAdmin, async (req, res) => {
+    try {
+        console.log("edit info", req.params.id);
+        const doc = await questionsCollection.doc(req.params.id).get();
+
+        if (!doc.exists) {
+            return res.status(404).json({ error: "Question not found"});
+        }
+        
+        res.status(200).json(mapQuestionDocument(doc));
+    } catch (error) {
+        res.status(500).json({ error: "Failed to fetch edit question"});
+    }
+});
+
+
 
 router.get("/:id", verifyAuthenticated, async (req, res) => {
   try {

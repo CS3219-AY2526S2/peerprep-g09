@@ -5,6 +5,9 @@ const ALLOWED_TOPICS = [
   "linked-list",
   "stack",
   "queue",
+  "graph",
+  "topological-sort",
+  "tree",
 ];
 
 export default ALLOWED_TOPICS;
