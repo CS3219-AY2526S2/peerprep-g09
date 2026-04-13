@@ -24,7 +24,7 @@ app.use(
 );
 // Protected Route
 app.use(
-  ["/api/users/update-password","/api/users/delete-account"],
+  ["/api/users/update-password","/api/users/delete-account","/api/users/update-displayName"],
   verifyToken, 
   createProxyMiddleware({
     target: USER_SERVICE,

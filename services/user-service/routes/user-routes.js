@@ -62,7 +62,11 @@ router.post('/login', async (req, res) => {
 });
 
 router.post('/register', async (req, res) => {
-    const { email, password } = req.body;
+    const { email, password, displayName } = req.body;
+
+    if (!displayName) {
+        return res.status(400).json({ error: "Display name is required." });
+    }
 
     if (!Validator.validateEmail(email)) {
         return res.status(400).json({ error: "Invalid email format." });
@@ -78,16 +82,17 @@ router.post('/register', async (req, res) => {
     
         const userRecord = await firebaseApp.auth.createUser({
             email: email,
-            password: password
+            password: password,
+            displayName: displayName
         });
 
     
-        await firebaseApp.auth.setCustomUserClaims(userRecord.uid, { role: 'User' });
-
+        await firebaseApp.auth.setCustomUserClaims(userRecord.uid, { role: 'User', displayName: displayName });
 
         await firebaseApp.db.collection('users').doc(userRecord.uid).set({
             uid: userRecord.uid,
             email: email,
+            displayName: displayName,
             role: 'User', 
             createdAt: new Date().toISOString()
         });
@@ -285,4 +290,27 @@ router.delete('/delete-account', async (req,res) => {
     }
 })
 
+router.patch('/update-displayName', async (req, res) => {
+  const { displayName } = req.body;
+  const userData = JSON.parse(req.headers['x-user-data']);
+  const uid = userData.uid
+  if (!displayName) {
+    return res.status(400).send("Display name is required");
+  }
+
+  try {
+    await firebaseApp.db.collection('users').doc(uid).set({
+      displayName: displayName
+    }, { merge: true });
+
+    await firebaseApp.auth.setCustomUserClaims(uid, { 
+      displayName: displayName 
+    });
+
+    res.status(200).send({ message: "Display name updated successfully!" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Error updating display name");
+  }
+});
 export default router;
