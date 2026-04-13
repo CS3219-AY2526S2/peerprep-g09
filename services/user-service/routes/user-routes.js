@@ -16,7 +16,36 @@ const transporter = nodemailer.createTransport({
     pass: process.env.RESEND_API_KEY, 
   },
 });
+router.post('/oAuth-Login', async (req,res) => {
+    const userData = JSON.parse(req.headers['x-user-data']);
+    const uid = userData.uid
+    const email = userData.email
+    
+    try {
+        const userRef = firebaseApp.db.collection('users').doc(uid);
+        const userDoc = await userRef.get();
 
+        if (!userDoc.exists) {
+            const newUser = {
+                uid,
+                email,
+                displayName: "Default username",
+                role: 'User',
+                createdAt: new Date().toISOString()
+            };
+            await userRef.set(newUser);
+            await firebaseApp.auth.setCustomUserClaims(uid, { 
+                role: 'User', 
+                displayName: "Default username" 
+            });
+            return res.status(201).json({ message: "Account created and logged in", user: newUser });
+        }
+        res.status(200).json({ message: "Login successful", user: userDoc.data() });
+
+    } catch (err) {
+        res.status(500).json({ error: "Database sync error" });
+    }
+})
 router.post('/login', async (req, res) => {
     const { email, password } = req.body;
     if (!email || !password) {
@@ -26,7 +55,7 @@ router.post('/login', async (req, res) => {
     try {
         const url = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FIREBASE_API_KEY}`;
         const response = await fetch(url, {
-            method: 'POST',
+            method: 'POST', 
             body: JSON.stringify({
                 email,
                 password,
@@ -62,11 +91,7 @@ router.post('/login', async (req, res) => {
 });
 
 router.post('/register', async (req, res) => {
-    const { email, password, displayName } = req.body;
-
-    if (!displayName) {
-        return res.status(400).json({ error: "Display name is required." });
-    }
+    const { email, password } = req.body;
 
     if (!Validator.validateEmail(email)) {
         return res.status(400).json({ error: "Invalid email format." });
@@ -83,16 +108,16 @@ router.post('/register', async (req, res) => {
         const userRecord = await firebaseApp.auth.createUser({
             email: email,
             password: password,
-            displayName: displayName
+            displayName: "Default username"
         });
 
     
-        await firebaseApp.auth.setCustomUserClaims(userRecord.uid, { role: 'User', displayName: displayName });
+        await firebaseApp.auth.setCustomUserClaims(userRecord.uid, { role: 'User', displayName: "Default username" });
 
         await firebaseApp.db.collection('users').doc(userRecord.uid).set({
             uid: userRecord.uid,
             email: email,
-            displayName: displayName,
+            displayName: "Default username",
             role: 'User', 
             createdAt: new Date().toISOString()
         });
