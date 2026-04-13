@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # 1. Redis Database
   redis:
@@ -30,8 +28,19 @@ services:
     build: ./services/collaboration-service
     ports:
       - "8084:8084"
-
-  # 5. Frontend (Next.js)
+  # 5. User Service
+  user-service:
+    build: ./services/user-service
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./services/user-service/.env
+    volumes:
+      - ./services/user-service:/usr/src/app
+      - /usr/src/app/node_modules
+    restart: always
+    
+  # 6. Frontend (Next.js)
   frontend:
     build: ./frontend
     ports:
