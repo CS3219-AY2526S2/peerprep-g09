@@ -30,15 +30,16 @@ services:
       - "8084:8084"
   # 5. User Service
   user-service:
-    build: ./services/user-service
-    ports:
-      - "8080:8080"
-    env_file:
-      - ./services/user-service/.env
+    build: 
+      context: ./services/user-service
+      dockerfile: Dockerfile
     volumes:
       - ./services/user-service:/usr/src/app
-      - /usr/src/app/node_modules
-    restart: always
+      - /usr/src/app/node_modules 
+    environment:
+      - NODE_ENV=development
+    ports:
+      - "8080:8080"
     
   # 6. Frontend (Next.js)
   frontend:
@@ -61,4 +62,10 @@ services:
     volumes:
       - ./gateway:/usr/src/app
       - /usr/src/app/node_modules
+    environment:
+      - USER_SERVICE_URL=http://user-service:8080
+      - MATCHING_SERVICE_URL=http://matching-service:8082
     restart: always
+    depends_on:
+      - user-service
+      - matching-service

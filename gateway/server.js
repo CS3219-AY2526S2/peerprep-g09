@@ -4,13 +4,13 @@ import { createProxyMiddleware } from "http-proxy-middleware";
 import { verifyAdmin, verifyToken } from "./middleware/authMiddleware.js";
 
 const app = express();
-const USER_SERVICE = "http://localhost:8080";
+const USER_SERVICE = process.env.USER_SERVICE_URL || "http://localhost:8080";
 const MATCHING_SERVICE =
   process.env.MATCHING_SERVICE_URL || "http://localhost:8082";
 
 app.use(
   cors({
-    origin: "http://localhost:3000",
+    origin: "http://localhost:3000",  
   }),
 );
 
