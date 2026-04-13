@@ -3,9 +3,14 @@ import 'dotenv/config';
 import firebaseApp from '../config/firebase.js';
 import Validator from '../utils/validation.js';
 import nodemailer from 'nodemailer';
+import multer from 'multer';
+import admin from 'firebase-admin';
 
+
+const upload = multer({ storage: multer.memoryStorage() });
 const router = express.Router();
 const FIREBASE_API_KEY = process.env.FIREBASE_WEB_API_KEY;
+const DEFAULT_PFP_URL = process.env.DEFAULT_PFP_URL;
 
 const transporter = nodemailer.createTransport({
   host: "smtp.resend.com",
@@ -16,11 +21,43 @@ const transporter = nodemailer.createTransport({
     pass: process.env.RESEND_API_KEY, 
   },
 });
+
+router.patch('/update-profilePic', upload.single('image'), async (req, res) => {
+    const userData = JSON.parse(req.headers['x-user-data']);
+    const uid = userData.uid
+    const file = req.file;
+
+    if (!file) return res.status(400).send("No file uploaded.");
+
+    try {
+        const bucket = admin.storage().bucket("peerprep-g9.firebasestorage.app");
+        const blob = bucket.file(`profile_pics/${uid}_${Date.now()}`);
+        const blobStream = blob.createWriteStream({
+            metadata: { contentType: file.mimetype }
+        });
+        blobStream.on('error', (err) => res.status(500).send(err));
+        blobStream.on('finish', async () => {
+            await blob.makePublic();
+            const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
+            await firebaseApp.db.collection('users').doc(uid).update({
+                photoURL: publicUrl
+            });
+
+            res.status(200).json({ photoURL: publicUrl });
+        });
+
+        blobStream.end(file.buffer);
+    } catch (error) {
+        console.log(error)
+        res.status(500).send("Upload failed.");
+    }
+});
+
 router.post('/oAuth-Login', async (req,res) => {
     const userData = JSON.parse(req.headers['x-user-data']);
     const uid = userData.uid
     const email = userData.email
-    
+
     try {
         const userRef = firebaseApp.db.collection('users').doc(uid);
         const userDoc = await userRef.get();
@@ -30,6 +67,7 @@ router.post('/oAuth-Login', async (req,res) => {
                 uid,
                 email,
                 displayName: "Default username",
+                photoURL: DEFAULT_PFP_URL,
                 role: 'User',
                 createdAt: new Date().toISOString()
             };
@@ -108,7 +146,8 @@ router.post('/register', async (req, res) => {
         const userRecord = await firebaseApp.auth.createUser({
             email: email,
             password: password,
-            displayName: "Default username"
+            displayName: "Default username",
+            photoURL: DEFAULT_PFP_URL
         });
 
     
@@ -118,6 +157,7 @@ router.post('/register', async (req, res) => {
             uid: userRecord.uid,
             email: email,
             displayName: "Default username",
+            photoURL: DEFAULT_PFP_URL,
             role: 'User', 
             createdAt: new Date().toISOString()
         });
