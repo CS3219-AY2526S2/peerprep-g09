@@ -128,21 +128,7 @@ router.get("/editinfo/:id", verifyAdmin, async (req, res) => {
 
 
 
-router.get("/random", async (req, res) => {
-  try {
-    const { difficulty, topic, category } = req.query;
-    const result = await getRandomQuestionByFilters(difficulty, topic || category);
-
-    if (result.error) {
-      return res.status(result.status).json({ error: result.error });
-    }
-
-    res.status(200).json(result.question);
-  } catch (error) {
-    res.status(500).json({ error: "Failed to fetch random question." });
-  }
-});
-
+<<<<<<< HEAD
 router.get("/editinfo/:id", verifyAdmin, async (req, res) => {
     try {
         console.log("edit info", req.params.id);
@@ -160,6 +146,8 @@ router.get("/editinfo/:id", verifyAdmin, async (req, res) => {
 
 
 
+=======
+>>>>>>> 25bfaf34aac579ada49eb073a60e629a77393f0c
 router.get("/:id", verifyAuthenticated, async (req, res) => {
   try {
     const doc = await questionsCollection.doc(req.params.id).get();

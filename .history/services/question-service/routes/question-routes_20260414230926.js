@@ -160,6 +160,26 @@ router.get("/editinfo/:id", verifyAdmin, async (req, res) => {
 
 
 
+<<<<<<< HEAD
+router.get("/editinfo/:id", verifyAdmin, async (req, res) => {
+    try {
+        console.log("edit info", req.params.id);
+        const doc = await questionsCollection.doc(req.params.id).get();
+
+        if (!doc.exists) {
+            return res.status(404).json({ error: "Question not found"});
+        }
+        
+        res.status(200).json(mapQuestionDocument(doc));
+    } catch (error) {
+        res.status(500).json({ error: "Failed to fetch edit question"});
+    }
+});
+
+
+
+=======
+>>>>>>> 25bfaf34aac579ada49eb073a60e629a77393f0c
 router.get("/:id", verifyAuthenticated, async (req, res) => {
   try {
     const doc = await questionsCollection.doc(req.params.id).get();

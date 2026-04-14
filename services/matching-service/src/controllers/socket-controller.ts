@@ -58,6 +58,7 @@ export const handleJoinQueue = async (
   const partnerId = await redis.lpop(queueKey);
 
   if (partnerId && partnerId !== userId) {
+
     // change the id so that it is easier to test if 2 people are even allowed to enter the same room
     const sortedIds = [userId, partnerId].sort();
     const roomId = `room-${Date.now()}-${sortedIds[0]}-${sortedIds[1]}`;
@@ -134,7 +135,7 @@ export const handleDisconnect = async (socket: Socket) => {
 
 const fetchQuestion = async (category: string, difficulty: string) => {
   try {
-    const res = await axios.get(`${QUESTION_SERVICE_URL}/`, {
+    const res = await axios.get(`${QUESTION_SERVICE_URL}/api/questions/random`, {
       params: { category, difficulty },
     });
     return res.data;
