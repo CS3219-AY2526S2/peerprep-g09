@@ -17,7 +17,7 @@ socket.on('disconnect', () => {
 
 require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs' }});
 
-require(['vs/editor/editor.main'], async function() {
+require(['vs/editor/editor.main'], function() {
     // Create the editor instance inside your #editor-container div
     const editor = monaco.editor.create(document.getElementById('editor-container'), {
         value: "// Start collaborating on PeerPrep G09!",
@@ -26,31 +26,27 @@ require(['vs/editor/editor.main'], async function() {
         automaticLayout: true // Ensures editor resizes with the panel
     });
 
-    const Y = await import('https://esm.sh/yjs');
-    const { WebsocketProvider } = await import('https://esm.sh/y-websocket');
-    const { MonacoBinding } = await import('https://esm.sh/y-monaco');
+    editor.onDidChangeModelContent((event) => {
+        // Only emit if the change was made by the user (not by a socket update)
+        if (!editor.isUpdatingFromRemote) {
+            const code = editor.getValue();
+            socket.emit('code-change', { roomId, code });
+        }
+    });
 
-    const ydoc = new Y.Doc();
-
-    const provider = new WebsocketProvider(
-        'ws://localhost:1234',
-        roomId,
-        ydoc
-    );
-
-    const ytext = ydoc.getText('monaco');
-
-    const binding = new MonacoBinding(
-        ytext,
-        editor.getModel(),
-        new Set([editor]),
-        provider.awareness
-    );
-
-    provider.on('status', (e) => console.log('[yjs status]', e.status));
+    socket.on('receive-code', (newCode) => {
+        const currentCode = editor.getValue();
+        if (newCode !== currentCode) {
+            // Use a flag to prevent infinite loops of emitting/receiving
+            editor.isUpdatingFromRemote = true;
+            editor.setValue(newCode);
+            editor.isUpdatingFromRemote = false;
+        }
+    });
 });
 
 socket.on('user-left', (message) => {
+    // You could update the statusLabel or use a toast notification
     statusLabel.innerText = "online";
     statusLabel.className = "status-offline";
     
@@ -81,10 +77,12 @@ function startCountdown(durationMs) {
     timerInterval = setInterval(() => {
         timeLeft -= 1000;
 
+        // 1-minute warning (60 seconds)
         if (timeLeft <= 60000 && timeLeft > 59000) {
             showWarning("Warning: 1 minute remaining before session ends!");
         }
 
+        // Timer finished
         if (timeLeft <= 0) {
             clearInterval(timerInterval);
             terminateMeeting();
@@ -119,11 +117,21 @@ const userCountLabel = document.getElementById('user-count');
 socket.on('user-count-update', (count) => {
     userCountLabel.innerText = `Users: ${count}`;
     
-    // Optional: Visual cue if you're alone
     if (count < 2) {
         userCountLabel.style.color = "orange"; // Waiting for partner
     } else {
         userCountLabel.style.color = "lightgreen"; // Full room
+    }
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const question = urlParams.get('question');
+
+    console.log("Full Search String:", window.location.search); 
+    
+    if (question) {
+        console.log("Fetching data for:", question);
     }
 });
 
@@ -186,6 +194,6 @@ function renderContent(data) {
 socket.on('init-room-data', (data) => {
     if (data.questionId) {
         console.log("Got ID from server, fetching details...");
-        loadQuestionData(data.questionId); // NOW you fetch
+        loadQuestionData(data.questionId);
     }
 });

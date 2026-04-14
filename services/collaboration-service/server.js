@@ -71,6 +71,10 @@ io.on('connection', (socket) => {
         socket.to(roomId).emit('user-joined', 'A collaborator has entered.');
     });
 
+    socket.on('code-change', (data) => {
+        socket.to(data.roomId).emit('receive-code', data.code);
+    });
+
     // Handle the moment right before the user leaves
     socket.on('disconnecting', () => {
         // socket.rooms is a Set containing the socket ID and the room IDs
