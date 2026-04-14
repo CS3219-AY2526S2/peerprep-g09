@@ -18,15 +18,17 @@ import {
 } from "@/components/ui/field";
 import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
+import {
+  ExclamationTriangleIcon,
+  CheckCircledIcon,
+} from "@radix-ui/react-icons";
 import { PeerprepLogo } from "./peerprep-logo";
 
-export function LoginForm({
+export function ForgotPasswordForm({
   className,
   ...props
 }: React.ComponentProps<"div">) {
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -38,30 +40,27 @@ export function LoginForm({
     setSuccess(false);
 
     try {
-      const response = await fetch("http://localhost:5001/api/users/login", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      const response = await fetch(
+        "http://localhost:5001/api/users/forgot-password",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ email }),
         },
-        body: JSON.stringify({ email, password }),
-      });
+      );
 
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || "Login failed. Please try again.");
+        throw new Error(
+          data.error || "Failed to send reset email. Please try again.",
+        );
       }
 
-      // On successful login, store tokens and redirect
-      localStorage.setItem("accessToken", data.accessToken);
-      localStorage.setItem("refreshToken", data.refreshToken);
-      localStorage.setItem("uid", data.uid);
       setSuccess(true);
-
-      // Redirect to the lobby after a short delay
-      setTimeout(() => {
-        window.location.href = "/lobby";
-      }, 1000);
+      setEmail("");
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
@@ -80,9 +79,10 @@ export function LoginForm({
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>Login to your account</CardTitle>
+          <CardTitle>Reset your password</CardTitle>
           <CardDescription>
-            Enter your email below to login to your account
+            Enter your email address and we&apos;ll send you a link to reset
+            your password
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -97,9 +97,11 @@ export function LoginForm({
               )}
               {success && (
                 <Alert variant="default">
+                  <CheckCircledIcon className="h-4 w-4" />
                   <AlertTitle>Success!</AlertTitle>
                   <AlertDescription>
-                    Login successful. Redirecting...
+                    Password reset email sent successfully. Please check your
+                    inbox.
                   </AlertDescription>
                 </Alert>
               )}
@@ -112,51 +114,27 @@ export function LoginForm({
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  disabled={isLoading}
-                />
-              </Field>
-              <Field>
-                <div className="flex items-center">
-                  <FieldLabel htmlFor="password">Password</FieldLabel>
-                  <a
-                    href="/forgot-password"
-                    className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
-                  >
-                    Forgot your password?
-                  </a>
-                </div>
-                <Input
-                  id="password"
-                  type="password"
-                  required
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={isLoading}
+                  disabled={isLoading || success}
                 />
               </Field>
               <Field>
                 <Button
                   type="submit"
-                  disabled={isLoading}
+                  disabled={isLoading || success}
                   className="hover:bg-main-beige bg-main-beige w-full hover:opacity-90"
                 >
-                  {isLoading ? "Logging in..." : "Login"}
+                  {isLoading ? "Sending..." : "Send Reset Email"}
                 </Button>
-                {/* <Button
-                  variant="outline"
-                  type="button"
-                  disabled={isLoading}
-                  className="w-full"
-                >
-                  Login with Google
-                </Button> */}
-                <FieldDescription className="text-center">
-                  Don&apos;t have an account?{" "}
-                  <a href="/signup" className="underline">
-                    Sign up
-                  </a>
-                </FieldDescription>
               </Field>
+              <FieldDescription className="text-center">
+                Remember your password?{" "}
+                <a
+                  href="/login"
+                  className="text-sm underline-offset-4 hover:underline"
+                >
+                  Back to login
+                </a>
+              </FieldDescription>
             </FieldGroup>
           </form>
         </CardContent>

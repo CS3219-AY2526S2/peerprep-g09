@@ -47,7 +47,8 @@ export default function MatchMaking() {
     "http://localhost:8082";
 
   const [topics, setTopics] = useState<string[]>(DEFAULT_TOPICS);
-  const [difficulties] = useState<string[]>(DEFAULT_DIFFICULTIES);
+  const [difficulties, setDifficulties] =
+    useState<string[]>(DEFAULT_DIFFICULTIES);
   const [status, setStatus] = useState<Record<string, number>>({});
 
   const [userA, setUserA] = useState<UserState>({
@@ -83,7 +84,23 @@ export default function MatchMaking() {
       }
     }
 
+    async function loadDifficulties() {
+      try {
+        const res = await fetch(`${serviceUrl}/difficulties`);
+        const data = (await res.json()) as { difficulties?: string[] };
+        if (Array.isArray(data.difficulties) && data.difficulties.length > 0) {
+          console.log("Loaded difficulties from service:", data.difficulties);
+          setDifficulties(data.difficulties);
+          setUserA((prev) => ({ ...prev, difficulty: data.difficulties![0] }));
+          setUserB((prev) => ({ ...prev, difficulty: data.difficulties![0] }));
+        }
+      } catch {
+        // Keep fallback topics when service is unavailable.
+      }
+    }
+
     void loadTopics();
+    void loadDifficulties();
   }, [serviceUrl]);
 
   useEffect(() => {

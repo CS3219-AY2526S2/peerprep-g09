@@ -75,6 +75,8 @@ io.on("connection", (socket) => {
 });
 
 const startServer = async () => {
+  // dirty workaround to ensure Question Service is up before fetching metadata
+  await new Promise(resolve => setTimeout(resolve, 5000));
   await initializeMetadata();
 
   server.listen(PORT, () => {

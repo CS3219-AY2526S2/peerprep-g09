@@ -19,3 +19,9 @@ PeerPrep is a technical interview preparation platform where users can match wit
 ```
 
 3. The frontend will be available at `http://localhost:3000`.
+
+To stop the services, press `Ctrl + C` in the terminal and then run:
+
+```bash
+   docker-compose down
+```
