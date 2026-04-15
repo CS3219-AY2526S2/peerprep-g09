@@ -1,13 +1,16 @@
 const socket = io();
 const roomId = window.location.pathname.split('/').pop();
 
+const urlParams = new URLSearchParams(window.location.search);
+const questionId = urlParams.get('questionId') || 'default'; 
+
 const statusLabel = document.getElementById('connection-status');
 
 // Handle connection UI
 socket.on('connect', () => {
     statusLabel.innerText = "Online";
     statusLabel.className = "status-online";
-    socket.emit('join-room', roomId);
+    socket.emit('join-room', roomId, questionId);
 });
 
 socket.on('disconnect', () => {
@@ -127,7 +130,7 @@ socket.on('user-count-update', (count) => {
 
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
-    const question = urlParams.get('question');
+    const question = urlParams.get('questionId');
 
     console.log("Full Search String:", window.location.search); 
     
@@ -142,6 +145,8 @@ async function loadQuestionData(questionId) {
             // We fetch from the Question Service (Port 8081)
             const response = await fetch(`http://localhost:8081/api/questions/${questionId}`);
             
+            console.log(questionId)
+
             if (response.ok) {
                 const data = await response.json();
                 // Ensure renderContent uses the mapped data from the service

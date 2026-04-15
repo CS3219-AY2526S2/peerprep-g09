@@ -30,12 +30,12 @@ const roomTimers = new Map()
 // Global Socket Logic
 io.on('connection', (socket) => {
     socket.on('join-room', (roomId, questionId) => {
+        console.log(questionId)
         socket.join(roomId);
 
         if (!roomTimers.has(roomId)) {
             const startTime = Date.now();
             const duration = 2 * 60 * 1000; 
-            
             // Store the timeout reference so we know it's active
             const cleanupTask = setTimeout(() => {
                 if (roomTimers.has(roomId)) {
