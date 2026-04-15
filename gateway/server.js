@@ -24,7 +24,7 @@ app.use(
 );
 // Protected Route
 app.use(
-  ["/api/users/update-password","/api/users/delete-account","/api/users/update-displayName","/api/users/oAuth-Login","/api/users/update-profilePic"],
+  ["/api/users/update-password","/api/users/delete-account","/api/users/update-displayName","/api/users/oAuth-Login","/api/users/update-profilePic","/api/users/update-progress","/api/users/get-stats"],
   verifyToken, 
   createProxyMiddleware({
     target: USER_SERVICE,
@@ -66,3 +66,4 @@ app.use(
 );
 
 app.listen(5001, () => console.log("Gateway running on PORT 5001"));
+
