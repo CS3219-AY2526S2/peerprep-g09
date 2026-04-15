@@ -7,6 +7,7 @@ const app = express();
 const USER_SERVICE = process.env.USER_SERVICE_URL || "http://localhost:8080";
 const MATCHING_SERVICE =
   process.env.MATCHING_SERVICE_URL || "http://localhost:8082";
+const QUESTION_SERVICE = process.env.QUESTION_SERVICE_URL || "http://localhost:8081";
 
 app.use(
   cors({
@@ -62,6 +63,40 @@ app.use(
     changeOrigin: true,
     ws: true,
     pathRewrite: { "^/matching-socket": "/socket.io" },
+  }),
+);
+
+// =============== Question Service ===============
+// Public metadata endpoints (no auth required) - MUST BE FIRST
+app.use(
+  "/api/questions/metadata",
+  createProxyMiddleware({
+    target: QUESTION_SERVICE,
+    changeOrigin: true,
+    pathRewrite: (path, req) => req.originalUrl,
+  }),
+);
+
+// Admin-only endpoints (create, update, delete, seed)
+app.use(
+  ["/api/questions/seed", "/api/questions/editinfo"],
+  verifyToken,
+  verifyAdmin,
+  createProxyMiddleware({
+    target: QUESTION_SERVICE,
+    changeOrigin: true,
+    pathRewrite: (path, req) => req.originalUrl,
+  }),
+);
+
+// Authenticated user endpoints (list, get, random)
+app.use(
+  "/api/questions",
+  verifyToken,
+  createProxyMiddleware({
+    target: QUESTION_SERVICE,
+    changeOrigin: true,
+    pathRewrite: (path, req) => req.originalUrl,
   }),
 );
 
