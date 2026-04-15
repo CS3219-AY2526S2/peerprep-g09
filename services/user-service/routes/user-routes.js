@@ -5,6 +5,7 @@ import Validator from '../utils/validation.js';
 import nodemailer from 'nodemailer';
 import multer from 'multer';
 import admin from 'firebase-admin';
+import {FieldValue} from 'firebase-admin/firestore';
 
 
 const upload = multer({ storage: multer.memoryStorage() });
@@ -378,4 +379,77 @@ router.patch('/update-displayName', async (req, res) => {
     res.status(500).send("Error updating display name");
   }
 });
+
+router.post('/update-progress', async (req, res) => {
+    try {
+        const userData = JSON.parse(req.headers['x-user-data']);
+        const uid = userData.uid;
+        const { questionId, questionDifficulty, questionTopics } = req.body;
+
+        if (!questionId) return res.status(400).json({ error: "Question ID is required." });
+
+        const userRef = firebaseApp.db.collection('users').doc(uid);
+        const progressRef = userRef.collection('QuestionsAttempted').doc(questionId);
+
+        const docSnapshot = await progressRef.get();
+        
+        if (docSnapshot.exists) {
+            return res.status(200).json({ message: "Progress already updated for this question." });
+        }
+
+        await progressRef.set({
+            questionId,
+            difficulty: questionDifficulty || "Unknown",
+            topics: Array.isArray(questionTopics) ? questionTopics : [], 
+            completedAt: FieldValue.serverTimestamp()
+        });
+
+        const statsUpdate = {
+            totalAttempted: FieldValue.increment(1),
+            [`stats.difficulty.${questionDifficulty}`]: FieldValue.increment(1)
+        };
+
+        if (Array.isArray(questionTopics)) {
+            questionTopics.forEach(topic => {
+                statsUpdate[`stats.category.${topic}`] = FieldValue.increment(1);
+            });
+        }
+
+        await userRef.update(statsUpdate);
+        
+        res.status(200).json({ message: "Progress and stats updated for the first time" });
+
+    } catch (error) {
+        console.error("Update Progress Error:", error);
+        res.status(500).json({ error: "Failed to update progress." });
+    }
+});
+
+router.get('/get-stats', async (req, res) => {
+    try {
+        const userData = JSON.parse(req.headers['x-user-data']);
+        const uid = userData.uid;
+
+        const userDoc = await firebaseApp.db.collection('users').doc(uid).get();
+
+        if (!userDoc.exists) {
+            return res.status(404).json({ error: "User profile not found." });
+        }
+
+        const data = userDoc.data();
+        
+        const stats = data.stats || {};
+
+        res.status(200).json({
+            totalAttempted: data.totalAttempted || 0,
+            byDifficulty: stats.difficulty || {},
+            byCategory: stats.category || {}
+        });
+
+    } catch (error) {
+        console.error("Fetch Stats Error:", error);
+        res.status(500).json({ error: "Failed to retrieve user statistics." });
+    }
+});
+
 export default router;
