@@ -65,7 +65,9 @@ services:
     environment:
       - USER_SERVICE_URL=http://user-service:8080
       - MATCHING_SERVICE_URL=http://matching-service:8082
+      - QUESTION_SERVICE_URL=http://question-service:8081
     restart: always
     depends_on:
       - user-service
       - matching-service
+      - question-service
