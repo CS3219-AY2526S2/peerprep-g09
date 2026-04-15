@@ -1,0 +1,85 @@
+/* Layout Reset */
+* { box-sizing: border-box; }
+body { 
+    margin: 0; 
+    height: 100vh; 
+    display: flex; 
+    flex-direction: column; 
+    background: #1e1e1e; 
+    color: #efefef;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Navbar */
+#navbar { 
+    height: 50px; 
+    background: #2d2d2d; 
+    display: flex; 
+    justify-content: space-between; 
+    align-items: center; 
+    padding: 0 20px;
+    border-bottom: 1px solid #444;
+}
+
+/* Main Split View */
+#workspace { 
+    display: flex; 
+    flex: 1; /* Takes up remaining height */
+    overflow: hidden; 
+}
+
+/* Left Panel */
+#question-panel { 
+    width: 40%; 
+    border-right: 2px solid #333; 
+    padding: 20px; 
+    overflow-y: auto; 
+    background: #1e1e1e;
+}
+
+.difficulty.easy { color: #4ade80; font-weight: bold; }
+
+/* Right Panel */
+#editor-panel { 
+    width: 60%; 
+    display: flex; 
+    flex-direction: column; 
+}
+
+#editor-container { 
+    flex: 1; /* Pushes the console to the bottom */
+}
+
+/* Console Section */
+#output-console { 
+    height: 200px; 
+    background: #000; 
+    border-top: 2px solid #333; 
+    display: flex; 
+    flex-direction: column;
+}
+
+.console-header { 
+    padding: 5px 15px; 
+    background: #252526; 
+    font-size: 12px; 
+    color: #aaa; 
+    text-transform: uppercase;
+}
+
+#output-text { 
+    padding: 10px; 
+    font-family: 'Courier New', Courier, monospace; 
+    color: #00ff00; 
+    overflow-y: auto; 
+}
+
+/* Run Button */
+#run-btn { 
+    background: #0e639c; 
+    color: white; 
+    border: none; 
+    padding: 6px 12px; 
+    border-radius: 3px; 
+    cursor: pointer;
+}

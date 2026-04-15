@@ -1,0 +1,14 @@
+**/.env
+**/.env.local
+**/.env.development.local
+**/.env.test.local
+**/.env.production.local
+postman
+./peerprep-g09/postman
+**/node_modules/
+dist
+serviceAccountKey.json
+*.log
+test.js
+seed-admin.js
+.DS_Store

@@ -1,0 +1,46 @@
+name: Matching Service CI
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - "services/matching-service/**"
+      - ".github/workflows/matching-service.yml"
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "services/matching-service/**"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: "services/matching-service/package-lock.json"
+
+      - name: Install dependencies
+        run: npm ci
+        working-directory: services/matching-service
+
+      - name: Type check
+        run: npm run build
+        working-directory: services/matching-service
+
+      - name: Lint
+        run: npm run lint
+        working-directory: services/matching-service
+
+        # If we want to run tests in the future
+        #   - name: Run tests
+        #     run: npm test
+        #     working-directory: services/matching-service
+        #     continue-on-error: true
