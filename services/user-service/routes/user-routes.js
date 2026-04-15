@@ -38,13 +38,24 @@ router.patch('/update-profilePic', upload.single('image'), async (req, res) => {
         });
         blobStream.on('error', (err) => res.status(500).send(err));
         blobStream.on('finish', async () => {
-            await blob.makePublic();
-            const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
-            await firebaseApp.db.collection('users').doc(uid).update({
-                photoURL: publicUrl
-            });
+            try {
+                await blob.makePublic();
+                const publicUrl = `https://storage.googleapis.com/${bucket.name}/${blob.name}`;
+                
+            
+                await firebaseApp.db.collection('users').doc(uid).update({
+                    photoURL: publicUrl
+                });
 
-            res.status(200).json({ photoURL: publicUrl });
+                await firebaseApp.auth.setCustomUserClaims(uid, { 
+                    picture: publicUrl 
+                });
+
+                res.status(200).json({ photoURL: publicUrl });
+            } catch (err) {
+                console.error("Error in finish callback:", err);
+                if (!res.headersSent) res.status(500).send("Processing failed.");
+            }
         });
 
         blobStream.end(file.buffer);
