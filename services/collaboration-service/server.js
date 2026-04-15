@@ -1,3 +1,4 @@
+import "dotenv/config";
 import express from 'express'
 import path from 'path'
 import http from 'http'
@@ -26,16 +27,43 @@ app.use(express.static(path.join(__dirname, 'frontend')));
 app.use('/config', express.static(path.join(__dirname, 'config')));
 
 const roomTimers = new Map()
+const QUESTION_SERVICE_URL =
+  process.env.QUESTION_SERVICE_URL || "http://question-service:8081";
+
+const fetchQuestionById = async (questionId) => {
+    if (!questionId) {
+        return null;
+    }
+
+    const response = await fetch(`${QUESTION_SERVICE_URL}/api/questions/internal/${questionId}`, {
+        headers: {
+            "x-internal-service-key": process.env.INTERNAL_SERVICE_KEY || "",
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error(`Failed to fetch question ${questionId}: ${response.status}`);
+    }
+
+    return response.json();
+};
 
 // Global Socket Logic
 io.on('connection', (socket) => {
-    socket.on('join-room', (roomId, questionId) => {
-        console.log(questionId)
+    socket.on('join-room', async (roomId, questionId) => {
         socket.join(roomId);
 
         if (!roomTimers.has(roomId)) {
             const startTime = Date.now();
             const duration = 2 * 60 * 1000; 
+            let question = null;
+
+            try {
+                question = await fetchQuestionById(questionId);
+            } catch (error) {
+                console.error(`[QUESTION FETCH FAILED] Room ${roomId}:`, error.message);
+            }
+
             // Store the timeout reference so we know it's active
             const cleanupTask = setTimeout(() => {
                 if (roomTimers.has(roomId)) {
@@ -48,17 +76,29 @@ io.on('connection', (socket) => {
                 }
             }, duration + 5000);
 
-            roomTimers.set(roomId, { startTime, duration, questionId, cleanupTask });
+            roomTimers.set(roomId, { startTime, duration, questionId, question, cleanupTask });
             console.log(`[RESOURCES ALLOCATED] Room ${roomId} created.`);
 
         }
 
         const roomData = roomTimers.get(roomId);
+
+        if (!roomData.question && roomData.questionId) {
+            try {
+                roomData.question = await fetchQuestionById(roomData.questionId);
+            } catch (error) {
+                console.error(`[QUESTION REFETCH FAILED] Room ${roomId}:`, error.message);
+            }
+        }
+
         const currentTime = Date.now();
         const elapsed = currentTime - roomData.startTime;
         const remaining = Math.max(0, roomData.duration - elapsed);
 
-        socket.emit('init-room-data', { questionId: roomData.questionId });
+        socket.emit('init-room-data', {
+            questionId: roomData.questionId,
+            question: roomData.question || null,
+        });
 
         socket.emit('timer-update', { 
             remaining, 

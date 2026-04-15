@@ -10,6 +10,8 @@ services:
     build: ./services/question-service
     ports:
       - "8081:8081"
+    environment:
+      - INTERNAL_SERVICE_KEY=${INTERNAL_SERVICE_KEY:-peerprep-dev-internal-key}
   
   # 3. Matching Service
   matching-service:
@@ -28,6 +30,11 @@ services:
     build: ./services/collaboration-service
     ports:
       - "8084:8084"
+    environment:
+      - QUESTION_SERVICE_URL=http://question-service:8081
+      - INTERNAL_SERVICE_KEY=${INTERNAL_SERVICE_KEY:-peerprep-dev-internal-key}
+    depends_on:
+      - question-service
   # 5. User Service
   user-service:
     build: 

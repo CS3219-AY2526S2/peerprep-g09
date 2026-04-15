@@ -2,7 +2,13 @@ const socket = io();
 const roomId = window.location.pathname.split('/').pop();
 
 const urlParams = new URLSearchParams(window.location.search);
-const questionId = urlParams.get('questionId') || 'default'; 
+const questionId = urlParams.get('questionId') || '';
+const fallbackData = {
+    title: 'Challenge Unavailable',
+    description: 'We encountered an error loading the question. Please try refreshing or re-matching.',
+    constraints: [],
+    examples: []
+};
 
 const statusLabel = document.getElementById('connection-status');
 
@@ -139,36 +145,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-async function loadQuestionData(questionId) {
-    if (questionId) {
-        try {
-            // We fetch from the Question Service (Port 8081)
-            const response = await fetch(`http://localhost:8081/api/questions/${questionId}`);
-            
-            console.log(questionId)
-
-            if (response.ok) {
-                const data = await response.json();
-                // Ensure renderContent uses the mapped data from the service
-                return renderContent(data);
-            } else {
-                console.error("Question Service returned an error status:", response.status);
-            }
-        } catch (error) {
-            console.error("Error fetching from Question Service:", error);
-        }
-    }
-
-    // Fallback if service is down, ID is missing, or fetch fails
-    const fallbackData = {
-        title: 'Challenge Unavailable', 
-        description: 'We encountered an error loading the question. Please try refreshing or re-matching.', 
-        constraints: [], 
-        examples: []
-    };
-    renderContent(fallbackData);
-}
-
 function renderContent(data) {
     if (!data) return;
 
@@ -198,8 +174,9 @@ function renderContent(data) {
 }
 
 socket.on('init-room-data', (data) => {
-    if (data.questionId) {
-        console.log("Got ID from server, fetching details...");
-        loadQuestionData(data.questionId); // NOW you fetch
+    if (data.question) {
+        renderContent(data.question);
+    } else {
+        renderContent(fallbackData);
     }
 });

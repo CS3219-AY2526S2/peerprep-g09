@@ -12,3 +12,4 @@ serviceAccountKey.json
 test.js
 seed-admin.js
 .DS_Store
+.history/
