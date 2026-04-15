@@ -117,6 +117,7 @@ const userCountLabel = document.getElementById('user-count');
 socket.on('user-count-update', (count) => {
     userCountLabel.innerText = `Users: ${count}`;
     
+    // Optional: Visual cue if you're alone
     if (count < 2) {
         userCountLabel.style.color = "orange"; // Waiting for partner
     } else {
@@ -194,6 +195,6 @@ function renderContent(data) {
 socket.on('init-room-data', (data) => {
     if (data.questionId) {
         console.log("Got ID from server, fetching details...");
-        loadQuestionData(data.questionId);
+        loadQuestionData(data.questionId); // NOW you fetch
     }
 });
