@@ -75,7 +75,7 @@ flowchart LR
 From the repository root:
 
 ```bash
-docker-compose up --build
+docker-compose up
 ```
 
 Services:
