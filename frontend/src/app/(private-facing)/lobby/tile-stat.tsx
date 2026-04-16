@@ -12,7 +12,7 @@ export function TileStat({
   };
 
   return (
-    <div className="hover:bg-tile-dark bg-tile flex h-20 w-40 flex-col items-center justify-center rounded-lg border transition duration-200 hover:cursor-default">
+    <div className="shadow-lg hover:shadow-2xl hover:bg-tile-dark bg-tile flex h-20 w-40 flex-col items-center justify-center rounded-xl border transition duration-200 hover:cursor-default">
       <p>{stat}</p>
       <p className={categoryColors[category]}>{category}</p>
     </div>

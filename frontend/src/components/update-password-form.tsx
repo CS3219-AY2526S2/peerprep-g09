@@ -54,6 +54,9 @@ export function UpdatePasswordForm({
     }
 
     try {
+      if (typeof window === "undefined") {
+        throw new Error("This operation can only be performed in the browser.");
+      }
       const accessToken = localStorage.getItem("accessToken");
       if (!accessToken) {
         throw new Error("No access token found. Please log in again.");
@@ -84,10 +87,12 @@ export function UpdatePasswordForm({
 
       // Clear tokens since they were revoked
       setTimeout(() => {
-        localStorage.removeItem("accessToken");
-        localStorage.removeItem("refreshToken");
-        localStorage.removeItem("uid");
-        window.location.href = "/login";
+        if (typeof window !== "undefined") {
+          localStorage.removeItem("accessToken");
+          localStorage.removeItem("refreshToken");
+          localStorage.removeItem("uid");
+          window.location.href = "/login";
+        }
       }, 2000);
     } catch (err: unknown) {
       if (err instanceof Error) {

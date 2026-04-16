@@ -8,7 +8,7 @@ export default function PublicLayout({
   return (
     <div className="flex min-h-screen w-full flex-col">
       <PublicHeader />
-      <main className="flex w-full flex-1 p-2">{children}</main>
+      <main className="flex w-full flex-1 p-2 justify-center">{children}</main>
     </div>
   );
 }

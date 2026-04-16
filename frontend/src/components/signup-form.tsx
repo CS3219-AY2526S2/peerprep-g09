@@ -56,10 +56,9 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
       }
 
       setSuccess(true);
-      // Redirect to login after a short delay
-      setTimeout(() => {
-        window.location.href = "/login";
-      }, 2000);
+      setEmail("");
+      setPassword("");
+      setConfirmPassword("");
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
@@ -97,7 +96,7 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
                 <Alert>
                   <AlertTitle>Success!</AlertTitle>
                   <AlertDescription>
-                    Account created successfully. Redirecting to login...
+                    Account created successfully. Check your email to verify your account.
                   </AlertDescription>
                 </Alert>
               )}
@@ -110,7 +109,7 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  disabled={isLoading}
+                  disabled={isLoading || success}
                 />
               </Field>
               <Field>
@@ -121,7 +120,7 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
                   required
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  disabled={isLoading}
+                  disabled={isLoading || success}
                 />
               </Field>
               <Field>
@@ -134,14 +133,14 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
                   required
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  disabled={isLoading}
+                  disabled={isLoading || success}
                 />
               </Field>
               <FieldGroup>
                 <Field>
                   <Button
                     type="submit"
-                    disabled={isLoading}
+                    disabled={isLoading || success}
                     className="hover:bg-main-beige bg-main-beige w-full hover:opacity-90"
                   >
                     {isLoading ? "Creating Account..." : "Create Account"}

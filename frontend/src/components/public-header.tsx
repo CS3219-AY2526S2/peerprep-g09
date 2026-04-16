@@ -6,8 +6,29 @@ import { UserIcon, ChevronDownIcon } from "lucide-react";
 
 export function PublicHeader() {
   const [showDropdown, setShowDropdown] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [displayName, setDisplayName] = useState("");
+  const [photoURL, setPhotoURL] = useState("");
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const isLoggedIn = localStorage.getItem("accessToken") != null;
+
+  useEffect(() => {
+    // Check if user is logged in and extract JWT claims
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("accessToken");
+      if (token) {
+        setIsLoggedIn(true);
+        try {
+          const payload = JSON.parse(atob(token.split(".")[1]));
+          setDisplayName(payload.displayName || "User");
+          setPhotoURL(payload.photoURL || "");
+        } catch (e) {
+          console.error("Failed to decode token:", e);
+        }
+      } else {
+        setIsLoggedIn(false);
+      }
+    }
+  }, []);
 
   useEffect(() => {
     // Close dropdown when clicking outside
@@ -62,17 +83,8 @@ export function PublicHeader() {
   return (
     <div className="text-header-font bg-main-beige sticky top-0 flex h-20 justify-between px-6 py-6 text-shadow-md">
       <div className="flex gap-4">
-        <Link href="/" className="transition duration-200 hover:opacity-70">
+        <Link href="/" className="text-xl font-bold transition duration-200 hover:opacity-70">
           Peerprep
-        </Link>
-        <Link href="/" className="transition duration-200 hover:opacity-70">
-          Features
-        </Link>
-        <Link href="/" className="transition duration-200 hover:opacity-70">
-          Learn more
-        </Link>
-        <Link href="/" className="transition duration-200 hover:opacity-70">
-          Dummy
         </Link>
       </div>
       <div className="flex items-center gap-4">
@@ -82,11 +94,26 @@ export function PublicHeader() {
               onClick={() => setShowDropdown(!showDropdown)}
               className="flex items-center gap-2 transition duration-200 hover:opacity-70"
             >
-              <UserIcon className="h-5 w-5" />
+              {photoURL ? (
+                <img
+                  src={photoURL}
+                  alt="Profile"
+                  className="h-8 w-8 rounded-full object-cover"
+                />
+              ) : (
+                <UserIcon className="h-5 w-5" />
+              )}
+              <span className="text-sm font-medium">{displayName}</span>
               <ChevronDownIcon className="h-4 w-4" />
             </button>
             {showDropdown && (
               <div className="absolute right-0 z-50 mt-2 w-48 rounded-md bg-white shadow-lg">
+                <Link
+                  href="/settings"
+                  className="block w-full px-4 py-2 text-left text-sm text-gray-700 transition duration-200 hover:bg-gray-100"
+                >
+                  Profile Settings
+                </Link>
                 <Link
                   href="/update-password"
                   className="block w-full px-4 py-2 text-left text-sm text-gray-700 transition duration-200 hover:bg-gray-100"
