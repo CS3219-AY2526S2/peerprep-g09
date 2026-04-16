@@ -20,6 +20,8 @@ import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { ExclamationTriangleIcon } from "@radix-ui/react-icons";
 import { PeerprepLogo } from "./peerprep-logo";
+import { signInWithPopup, GoogleAuthProvider } from "firebase/auth";
+import { getFirebaseAuth } from "@/lib/firebase";
 
 export function LoginForm({
   className,
@@ -53,15 +55,71 @@ export function LoginForm({
       }
 
       // On successful login, store tokens and redirect
-      localStorage.setItem("accessToken", data.accessToken);
-      localStorage.setItem("refreshToken", data.refreshToken);
-      localStorage.setItem("uid", data.uid);
-      setSuccess(true);
+      if (typeof window !== "undefined") {
+        localStorage.setItem("accessToken", data.accessToken);
+        localStorage.setItem("refreshToken", data.refreshToken);
+        localStorage.setItem("uid", data.uid);
+        setSuccess(true);
 
-      // Redirect to the lobby after a short delay
-      setTimeout(() => {
-        window.location.href = "/lobby";
-      }, 1000);
+        // Redirect to the lobby after a short delay
+        setTimeout(() => {
+          window.location.href = "/lobby";
+        }, 1000);
+      }
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
+      } else {
+        setError("An unexpected error occurred. Please try again.");
+      }
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    setIsLoading(true);
+    setError("");
+    setSuccess(false);
+
+    try {
+      const auth = getFirebaseAuth();
+      const provider = new GoogleAuthProvider();
+      const result = await signInWithPopup(auth, provider);
+
+      // Get the Firebase ID token
+      const idToken = await result.user.getIdToken();
+
+      // Send it to your Node.js backend
+      const response = await fetch(
+        "http://localhost:5001/api/users/auth/google",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${idToken}`,
+          },
+        },
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Google login failed. Please try again.");
+      }
+
+      // On successful login, store tokens and redirect
+      if (typeof window !== "undefined") {
+        localStorage.setItem("accessToken", data.accessToken);
+        localStorage.setItem("refreshToken", data.refreshToken);
+        localStorage.setItem("uid", data.uid);
+        setSuccess(true);
+
+        // Redirect to the lobby after a short delay
+        setTimeout(() => {
+          window.location.href = "/lobby";
+        }, 1000);
+      }
     } catch (err: unknown) {
       if (err instanceof Error) {
         setError(err.message);
@@ -142,14 +200,19 @@ export function LoginForm({
                 >
                   {isLoading ? "Logging in..." : "Login"}
                 </Button>
-                {/* <Button
+                <Button
                   variant="outline"
                   type="button"
+                  onClick={handleGoogleLogin}
                   disabled={isLoading}
                   className="w-full"
                 >
-                  Login with Google
-                </Button> */}
+                  Login with{" "}
+                  <span>
+                    {" "}
+                    <img src="Google__G__logo.svg" />
+                  </span>
+                </Button>
                 <FieldDescription className="text-center">
                   Don&apos;t have an account?{" "}
                   <a href="/signup" className="underline">

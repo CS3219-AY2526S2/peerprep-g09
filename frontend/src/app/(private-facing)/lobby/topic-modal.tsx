@@ -14,7 +14,7 @@ export function TileModal({ topic }: { topic: string }) {
   return (
     <AlertDialog>
       <AlertDialogTrigger>
-        <div className="hover:bg-tile-dark bg-tile flex h-20 w-40 items-center justify-center rounded-lg border p-3 transition duration-200 ease-out hover:scale-105 hover:cursor-pointer">
+        <div className="shadow-lg hover:shadow-2xl hover:bg-tile-dark bg-tile flex h-20 w-40 items-center justify-center rounded-xl border p-3 transition duration-200 ease-out hover:scale-105 hover:cursor-pointer">
           <p>{topic}</p>
         </div>
       </AlertDialogTrigger>

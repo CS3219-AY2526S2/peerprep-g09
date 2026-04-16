@@ -4,6 +4,7 @@ dist/
 out/
 .tmp/
 .cache/
+.next/
 
 # Ignore Vite, Webpack, and React-specific build artifacts
 .vite/

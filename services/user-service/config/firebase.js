@@ -9,6 +9,11 @@ admin.initializeApp({
   credential: admin.credential.cert(serviceAccount)
 });
 
+// Enable ignoring undefined properties in Firestore
+admin.firestore().settings({
+  ignoreUndefinedProperties: true
+});
+
 const db = admin.firestore();
 const auth = admin.auth();
 
