@@ -421,7 +421,14 @@ router.delete('/delete-account', async (req,res) => {
                 });
             }
         }
-    await firebaseApp.db.collection('users').doc(uid).delete();
+    const userRef = firebaseApp.db.collection('users').doc(uid);
+    const batch = firebaseApp.db.batch();
+    const questionsSnapshot = await userRef.collection('QuestionsAttempted').get();
+    questionsSnapshot.docs.forEach((doc) => {
+            batch.delete(doc.ref);
+        });
+    batch.delete(userRef);
+    await batch.commit();
     await firebaseApp.auth.deleteUser(uid);
     res.status(200).json({ message: "Account successfully deleted." });
     }catch(err){
