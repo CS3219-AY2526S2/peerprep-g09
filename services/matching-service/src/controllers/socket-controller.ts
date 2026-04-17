@@ -35,7 +35,11 @@ export const handleJoinQueue = async (
   socket: Socket,
   data: MatchRequestData,
 ) => {
-  const { userId, category, difficulty } = data;
+  let { userId, category, difficulty } = data;
+
+  // Normalize inputs to match question service standards
+  category = normalizeTopic(category);
+  difficulty = normalizeDifficulty(difficulty);
 
   if (!userId) {
     console.log(`Invalid join_queue request: Missing userId.`);

@@ -3,35 +3,51 @@
 import Link from "next/link";
 import { useEffect, useState, useRef } from "react";
 import { UserIcon, ChevronDownIcon } from "lucide-react";
+import Image from "next/image";
 
 export function PublicHeader() {
   const [showDropdown, setShowDropdown] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [displayName, setDisplayName] = useState("");
-  const [photoURL, setPhotoURL] = useState("");
+  const [user, setUser] = useState({ displayName: "", photoURL: "", role: "" });
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Check if user is logged in and extract JWT claims
-    if (typeof window !== "undefined") {
-      const token = localStorage.getItem("accessToken");
-      if (token) {
-        setIsLoggedIn(true);
-        try {
-          const payload = JSON.parse(atob(token.split(".")[1]));
-          setDisplayName(payload.displayName || "User");
-          setPhotoURL(payload.photoURL || "");
-        } catch (e) {
-          console.error("Failed to decode token:", e);
+    const fetchProfile = async () => {
+      if (typeof window !== "undefined") {
+        const token = localStorage.getItem("accessToken");
+        if (token) {
+          setIsLoggedIn(true);
+          try {
+            const response = await fetch("http://localhost:5001/api/users/get-profile", {
+              headers: {
+                Authorization: `Bearer ${token}`,
+              },
+            });
+            if (!response.ok) throw new Error("Failed to fetch profile");
+            const data = await response.json();
+            setUser(data);
+          } catch (e) {
+            console.error("Failed to fetch profile:", e);
+            // If token is invalid, clear it
+            localStorage.removeItem("accessToken");
+            localStorage.removeItem("refreshToken");
+            setIsLoggedIn(false);
+          }
+        } else {
+          setIsLoggedIn(false);
         }
-      } else {
-        setIsLoggedIn(false);
       }
-    }
+    };
+    fetchProfile();
+
+    // Listen for storage changes to refetch profile
+    window.addEventListener('storage', fetchProfile);
+    return () => {
+      window.removeEventListener('storage', fetchProfile);
+    };
   }, []);
 
   useEffect(() => {
-    // Close dropdown when clicking outside
     function handleClickOutside(event: MouseEvent) {
       if (
         dropdownRef.current &&
@@ -63,14 +79,9 @@ export function PublicHeader() {
       });
 
       if (response.ok) {
-        // Clear tokens from localStorage
         localStorage.removeItem("accessToken");
         localStorage.removeItem("refreshToken");
         localStorage.removeItem("uid");
-
-        // Update state and redirect
-        // setIsLoggedIn(false);
-        setShowDropdown(false);
         window.location.href = "/";
       } else {
         console.error("Logout failed");
@@ -82,47 +93,48 @@ export function PublicHeader() {
 
   return (
     <div className="text-header-font bg-main-beige sticky top-0 flex h-20 justify-between px-6 py-6 text-shadow-md">
-      <div className="flex gap-4">
+      <div className="flex gap-4 items-center">
         <Link href="/" className="text-xl font-bold transition duration-200 hover:opacity-70">
           Peerprep
         </Link>
+        {isLoggedIn && user.role === 'Admin' && (
+          <Link href="/admin" className="text-sm font-semibold transition duration-200 hover:opacity-70 bg-blue-500 text-white px-3 py-1 rounded-md">
+            Admin Console
+          </Link>
+        )}
       </div>
       <div className="flex items-center gap-4">
         {isLoggedIn ? (
           <div className="relative" ref={dropdownRef}>
             <button
               onClick={() => setShowDropdown(!showDropdown)}
-              className="flex items-center gap-2 transition duration-200 hover:opacity-70"
+              className="flex items-center gap-2"
             >
-              {photoURL ? (
-                <img
-                  src={photoURL}
+              {user.photoURL ? (
+                <Image
+                  src={user.photoURL}
                   alt="Profile"
-                  className="h-8 w-8 rounded-full object-cover"
+                  width={32}
+                  height={32}
+                  className="rounded-full"
                 />
               ) : (
-                <UserIcon className="h-5 w-5" />
+                <UserIcon className="h-8 w-8 rounded-full bg-gray-300 p-1" />
               )}
-              <span className="text-sm font-medium">{displayName}</span>
-              <ChevronDownIcon className="h-4 w-4" />
+              <span className="font-semibold">{user.displayName}</span>
+              <ChevronDownIcon className="h-5 w-5" />
             </button>
             {showDropdown && (
-              <div className="absolute right-0 z-50 mt-2 w-48 rounded-md bg-white shadow-lg">
+              <div className="absolute right-0 mt-2 w-48 rounded-md bg-white shadow-lg">
                 <Link
                   href="/settings"
-                  className="block w-full px-4 py-2 text-left text-sm text-gray-700 transition duration-200 hover:bg-gray-100"
+                  className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                 >
-                  Profile Settings
-                </Link>
-                <Link
-                  href="/update-password"
-                  className="block w-full px-4 py-2 text-left text-sm text-gray-700 transition duration-200 hover:bg-gray-100"
-                >
-                  Change Password
+                  Settings
                 </Link>
                 <button
                   onClick={handleLogout}
-                  className="w-full rounded-md px-4 py-2 text-left text-sm text-gray-700 transition duration-200 hover:bg-gray-100"
+                  className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
                 >
                   Logout
                 </button>
@@ -130,20 +142,20 @@ export function PublicHeader() {
             )}
           </div>
         ) : (
-          <>
+          <div className="flex gap-4">
             <Link
               href="/login"
-              className="transition duration-200 hover:opacity-70"
+              className="rounded-md px-4 py-2 transition duration-200"
             >
-              Log in
+              Login
             </Link>
             <Link
               href="/signup"
-              className="transition duration-200 hover:opacity-70"
+              className="rounded-md px-4 py-2 text-white transition duration-200"
             >
-              Signup
+              Sign Up
             </Link>
-          </>
+          </div>
         )}
       </div>
     </div>

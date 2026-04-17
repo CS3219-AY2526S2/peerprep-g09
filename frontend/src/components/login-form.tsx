@@ -85,40 +85,49 @@ export function LoginForm({
     try {
       const auth = getFirebaseAuth();
       const provider = new GoogleAuthProvider();
-      const result = await signInWithPopup(auth, provider);
+      
+      try {
+        const result = await signInWithPopup(auth, provider);
 
-      // Get the Firebase ID token
-      const idToken = await result.user.getIdToken();
+        // Get the Firebase ID token
+        const idToken = await result.user.getIdToken();
 
-      // Send it to your Node.js backend
-      const response = await fetch(
-        "http://localhost:5001/api/users/auth/google",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${idToken}`,
+        // Send it to your Node.js backend to sync user data
+        const response = await fetch(
+          "http://localhost:5001/api/users/oAuth-Login",
+          {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              Authorization: `Bearer ${idToken}`,
+            },
           },
-        },
-      );
+        );
 
-      const data = await response.json();
+        const data = await response.json();
 
-      if (!response.ok) {
-        throw new Error(data.error || "Google login failed. Please try again.");
-      }
+        if (!response.ok) {
+          throw new Error(data.error || "Google login failed. Please try again.");
+        }
 
-      // On successful login, store tokens and redirect
-      if (typeof window !== "undefined") {
-        localStorage.setItem("accessToken", data.accessToken);
-        localStorage.setItem("refreshToken", data.refreshToken);
-        localStorage.setItem("uid", data.uid);
-        setSuccess(true);
+        // On successful login, store the ID token and user info
+        if (typeof window !== "undefined") {
+          localStorage.setItem("accessToken", idToken);
+          localStorage.setItem("uid", result.user.uid);
+          setSuccess(true);
 
-        // Redirect to the lobby after a short delay
-        setTimeout(() => {
-          window.location.href = "/lobby";
-        }, 1000);
+          // Redirect to the lobby after a short delay
+          // setTimeout(() => {
+          //   window.location.href = "/lobby";
+          // }, 1000);
+        }
+      } catch (popupError: unknown) {
+        // If popup is blocked, provide helpful message
+        if (popupError instanceof Error && popupError.message.includes("popup")) {
+          setError("Popup was blocked. Please allow popups for this site and try again.");
+        } else {
+          throw popupError;
+        }
       }
     } catch (err: unknown) {
       if (err instanceof Error) {

@@ -88,7 +88,8 @@ export function ProfileSettingsForm() {
       if (data.accessToken) {
         localStorage.setItem("accessToken", data.accessToken);
       }
-      // Clear success message after 3 seconds
+      // refetch profile to update header
+      window.dispatchEvent(new Event('storage'));
       setTimeout(() => setDisplayNameSuccess(""), 3000);
     } catch (err: unknown) {
       if (err instanceof Error) {
