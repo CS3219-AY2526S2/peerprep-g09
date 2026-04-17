@@ -1,8 +1,25 @@
 // test-match.js
 import { io } from "socket.io-client";
 
+const SOCKET_BASE_URL =
+  process.env.MATCHING_GATEWAY_URL || "http://localhost:5001";
+const SOCKET_PATH =
+  process.env.MATCHING_GATEWAY_SOCKET_PATH || "/matching-socket";
+const AUTH_TOKEN = process.env.MATCHING_AUTH_TOKEN;
+
 const createClient = (userId, category, difficulty) => {
-  const socket = io("http://localhost:8082");
+  const options = {
+    path: SOCKET_PATH,
+    transports: ["websocket"],
+  };
+
+  if (AUTH_TOKEN) {
+    options.extraHeaders = {
+      Authorization: `Bearer ${AUTH_TOKEN}`,
+    };
+  }
+
+  const socket = io(SOCKET_BASE_URL, options);
 
   socket.on("connect", () => {
     console.log(`User ${userId} connected.`);
