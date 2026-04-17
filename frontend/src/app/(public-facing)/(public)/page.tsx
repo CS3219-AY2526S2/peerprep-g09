@@ -1,6 +1,19 @@
+"use client";
 import Link from "next/link";
+import { useEffect, useState } from "react";
 
 export default function Home() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const token = localStorage.getItem("accessToken");
+      if (token) {
+        setIsLoggedIn(true);
+      }
+    }
+  }, []);
+
   return (
     <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-main-beige to-white px-4">
       <div className="text-center space-y-8">
@@ -11,7 +24,7 @@ export default function Home() {
 
         <div className="space-y-4 pt-8">
           <Link
-            href="/login"
+            href={isLoggedIn ? "/lobby" : "/login"}
             className="inline-block rounded-lg bg-gray-900 px-8 py-3 text-white font-semibold transition duration-200 hover:bg-gray-800"
           >
             Get Started

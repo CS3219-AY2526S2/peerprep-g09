@@ -22,7 +22,6 @@ import {
   ExclamationTriangleIcon,
   CheckCircledIcon,
 } from "@radix-ui/react-icons";
-import { PeerprepLogo } from "./peerprep-logo";
 
 export function UpdatePasswordForm({
   className,
@@ -32,14 +31,14 @@ export function UpdatePasswordForm({
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState(false);
+  const [success, setSuccess] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setIsLoading(true);
     setError("");
-    setSuccess(false);
+    setSuccess("");
 
     if (newPassword !== confirmPassword) {
       setError("New passwords do not match.");
@@ -80,7 +79,7 @@ export function UpdatePasswordForm({
         throw new Error(data.error || "Failed to update password.");
       }
 
-      setSuccess(true);
+      setSuccess("Password updated successfully! You will be logged out shortly.");
       setOldPassword("");
       setNewPassword("");
       setConfirmPassword("");
@@ -106,88 +105,66 @@ export function UpdatePasswordForm({
   };
 
   return (
-    <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <div className="flex justify-center">
-        <PeerprepLogo />
-      </div>
+    <div className={cn("grid gap-6", className)} {...props}>
       <Card>
         <CardHeader>
-          <CardTitle>Update your password</CardTitle>
+          <CardTitle>Update Password</CardTitle>
           <CardDescription>
-            Enter your current password and choose a new one
+            Enter your old and new password to update it.
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {error && (
+              <Alert variant="destructive">
+                <ExclamationTriangleIcon className="h-4 w-4" />
+                <AlertTitle>Error</AlertTitle>
+                <AlertDescription>{error}</AlertDescription>
+              </Alert>
+            )}
+            {success && (
+              <Alert>
+                <CheckCircledIcon className="h-4 w-4" />
+                <AlertTitle>Success</AlertTitle>
+                <AlertDescription>{success}</AlertDescription>
+              </Alert>
+            )}
             <FieldGroup>
-              {error && (
-                <Alert variant="destructive">
-                  <ExclamationTriangleIcon className="h-4 w-4" />
-                  <AlertTitle>Error</AlertTitle>
-                  <AlertDescription>{error}</AlertDescription>
-                </Alert>
-              )}
-              {success && (
-                <Alert variant="default">
-                  <CheckCircledIcon className="h-4 w-4" />
-                  <AlertTitle>Success!</AlertTitle>
-                  <AlertDescription>
-                    Password updated successfully. Redirecting to login...
-                  </AlertDescription>
-                </Alert>
-              )}
               <Field>
-                <FieldLabel htmlFor="old-password">Current Password</FieldLabel>
+                <FieldLabel>Old Password</FieldLabel>
                 <Input
-                  id="old-password"
                   type="password"
-                  placeholder="Enter your current password"
-                  required
                   value={oldPassword}
                   onChange={(e) => setOldPassword(e.target.value)}
-                  disabled={isLoading || success}
+                  required
                 />
               </Field>
               <Field>
-                <FieldLabel htmlFor="new-password">New Password</FieldLabel>
+                <FieldLabel>New Password</FieldLabel>
                 <Input
-                  id="new-password"
                   type="password"
-                  placeholder="Enter your new password"
-                  required
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  disabled={isLoading || success}
+                  required
                 />
+                <FieldDescription>
+                  Password must be at least 8 characters long and contain an
+                  uppercase letter, a lowercase letter, and a number.
+                </FieldDescription>
               </Field>
               <Field>
-                <FieldLabel htmlFor="confirm-password">
-                  Confirm New Password
-                </FieldLabel>
+                <FieldLabel>Confirm New Password</FieldLabel>
                 <Input
-                  id="confirm-password"
                   type="password"
-                  placeholder="Confirm your new password"
-                  required
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  disabled={isLoading || success}
+                  required
                 />
               </Field>
-              <FieldDescription className="text-xs text-gray-500">
-                Password must be 8+ characters with uppercase, lowercase, and a
-                number.
-              </FieldDescription>
-              <Field>
-                <Button
-                  type="submit"
-                  disabled={isLoading || success}
-                  className="hover:bg-main-beige bg-main-beige w-full hover:opacity-90"
-                >
-                  {isLoading ? "Updating..." : "Update Password"}
-                </Button>
-              </Field>
             </FieldGroup>
+            <Button type="submit" disabled={isLoading}>
+              {isLoading ? "Updating..." : "Update Password"}
+            </Button>
           </form>
         </CardContent>
       </Card>
