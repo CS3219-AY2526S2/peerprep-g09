@@ -356,6 +356,31 @@ router.delete('/delete-account', async (req,res) => {
     }
 })
 
+router.get('/get-profile', async (req, res) => {
+    try {
+        const userData = JSON.parse(req.headers['x-user-data']);
+        const uid = userData.uid;
+
+        const userDoc = await firebaseApp.db.collection('users').doc(uid).get();
+
+        if (!userDoc.exists) {
+            return res.status(404).json({ error: "User profile not found." });
+        }
+
+        const data = userDoc.data();
+
+        res.status(200).json({
+            displayName: data.displayName || "Default username",
+            photoURL: data.photoURL || DEFAULT_PFP_URL,
+            role: data.role || 'User'
+        });
+
+    } catch (error) {
+        console.error("Get Profile Error:", error);
+        res.status(500).json({ error: "Server error while fetching profile." });
+    }
+});
+
 router.patch('/update-displayName', async (req, res) => {
   const { displayName } = req.body;
   const userData = JSON.parse(req.headers['x-user-data']);

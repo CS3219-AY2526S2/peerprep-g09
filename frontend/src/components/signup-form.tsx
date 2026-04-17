@@ -141,7 +141,8 @@ export function SignupForm({ ...props }: React.ComponentProps<typeof Card>) {
                   <Button
                     type="submit"
                     disabled={isLoading || success}
-                    className="hover:bg-main-beige bg-main-beige w-full hover:opacity-90"
+                    variant="ghost"
+                    className="!bg-main-beige !text-black !hover:bg-main-beige w-full hover:opacity-90"
                   >
                     {isLoading ? "Creating Account..." : "Create Account"}
                   </Button>
