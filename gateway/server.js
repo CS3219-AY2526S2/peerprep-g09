@@ -7,16 +7,22 @@ const app = express();
 const USER_SERVICE = process.env.USER_SERVICE_URL || "http://localhost:8080";
 const MATCHING_SERVICE =
   process.env.MATCHING_SERVICE_URL || "http://localhost:8082";
-const QUESTION_SERVICE = process.env.QUESTION_SERVICE_URL || "http://localhost:8081";
+const QUESTION_SERVICE =
+  process.env.QUESTION_SERVICE_URL || "http://localhost:8081";
 
 app.use(
   cors({
-    origin: "http://localhost:3000",  
+    origin: "http://localhost:3000",
   }),
 );
 
 app.use(
-  ["/api/users/login", "/api/users/register", "/api/users/logout","/api/users/forgot-password"],
+  [
+    "/api/users/login",
+    "/api/users/register",
+    "/api/users/logout",
+    "/api/users/forgot-password",
+  ],
   createProxyMiddleware({
     target: USER_SERVICE,
     changeOrigin: true,
@@ -25,8 +31,16 @@ app.use(
 );
 // Protected Route
 app.use(
-  ["/api/users/update-password","/api/users/delete-account","/api/users/update-displayName","/api/users/oAuth-Login","/api/users/update-profilePic","/api/users/update-progress","/api/users/get-stats"],
-  verifyToken, 
+  [
+    "/api/users/update-password",
+    "/api/users/delete-account",
+    "/api/users/update-displayName",
+    "/api/users/oAuth-Login",
+    "/api/users/update-profilePic",
+    "/api/users/update-progress",
+    "/api/users/get-stats",
+  ],
+  verifyToken,
   createProxyMiddleware({
     target: USER_SERVICE,
     changeOrigin: true,
@@ -35,7 +49,7 @@ app.use(
 );
 // Protected Route (requiring admin access too)
 app.use(
-  ["/api/users/promote-user","/api/users/demote-self"],
+  ["/api/users/promote-user", "/api/users/demote-self"],
   verifyToken,
   verifyAdmin,
   createProxyMiddleware({
@@ -51,13 +65,16 @@ app.use(
   createProxyMiddleware({
     target: MATCHING_SERVICE,
     changeOrigin: true,
-    pathRewrite: (path, req) => req.originalUrl,
+    pathRewrite: {
+      "^/api/matching": "",
+    },
   }),
 );
 
 // WebSocket for Socket.io
 app.use(
   "/matching-socket",
+  verifyToken,
   createProxyMiddleware({
     target: MATCHING_SERVICE,
     changeOrigin: true,
@@ -101,4 +118,3 @@ app.use(
 );
 
 app.listen(5001, () => console.log("Gateway running on PORT 5001"));
-
