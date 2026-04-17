@@ -47,9 +47,9 @@ export default function Lobby() {
         setStats({
           totalAttempted: statsData.totalAttempted || 0,
           byDifficulty: {
-            Easy: statsData.byDifficulty?.Easy || 0,
-            Medium: statsData.byDifficulty?.Medium || 0,
-            Hard: statsData.byDifficulty?.Hard || 0,
+            Easy: statsData.byDifficulty?.easy || 0,
+            Medium: statsData.byDifficulty?.medium || 0,
+            Hard: statsData.byDifficulty?.hard || 0,
           },
         });
 
