@@ -33,8 +33,8 @@ export const initializeMetadata = async () => {
   } catch (error) {
     console.error("Failed to initialize matching metadata:", error);
     // Optional: Set some hardcoded defaults so the service doesn't break entirely
-    ["Easy", "Medium", "Hard"].forEach((d) => PREDEFINED_DIFFICULTIES.add(d));
-    ["Algorithms", "Data Structures"].forEach((t) => PREDEFINED_TOPICS.add(t));
+    ["easy", "medium", "hard"].forEach((d) => PREDEFINED_DIFFICULTIES.add(d));
+    ["array", "string", "hashmap", "linked-list", "stack", "queue", "graph", "topological-sort", "tree"].forEach((t) => PREDEFINED_TOPICS.add(t));
   }
 };
 

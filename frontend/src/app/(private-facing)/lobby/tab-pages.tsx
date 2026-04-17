@@ -1,34 +1,38 @@
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { TileModal } from "./topic-modal";
 import { CreateModal } from "./create-modal";
 
-export function TabPages() {
+interface TabPagesProps {
+  categories: string[];
+  difficulties: string[];
+}
+
+export function TabPages({ categories, difficulties }: TabPagesProps) {
+  // Get first 9 categories
+  const displayCategories = categories.slice(0, 9);
+
   return (
-    <Tabs defaultValue="account" className="gap-y-4">
-      <TabsList className="mx-auto">
-        <TabsTrigger value="account">Quick Pairing</TabsTrigger>
-        <TabsTrigger value="password">Lobby</TabsTrigger>
-      </TabsList>
-      <TabsContent value="account">
-        <div className="flex justify-center gap-x-4">
-          <div className="grid grid-cols-3 gap-3">
-            <TileModal topic="test1" />
-            <TileModal topic="test1" />
-            <TileModal topic="test1" />
-            <TileModal topic="test1" />
-            <TileModal topic="test1" />
-            <TileModal topic="test1" />
-            <TileModal topic="test1" />
-            <TileModal topic="test1" />
-            <TileModal topic="test1" />
-          </div>
-          <div className="flex flex-col items-center justify-center gap-y-3">
-            <CreateModal title="Create Prep" />
-            <CreateModal title="Challenge a friend" />
-          </div>
+    <div className="w-full flex flex-col items-center">
+      <div className="mb-6 w-full text-center">
+        <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Quick Pairing</h2>
+      </div>
+      <div className="flex items-start gap-12">
+        <div className="grid grid-cols-3 gap-3">
+          {displayCategories.map((topic) => (
+            <TileModal 
+              key={topic} 
+              topic={topic} 
+              difficulties={difficulties}
+            />
+          ))}
         </div>
-      </TabsContent>
-      <TabsContent value="password">Change your password here.</TabsContent>
-    </Tabs>
+        <div className="pt-2">
+          <CreateModal 
+            title="Create Prep" 
+            categories={categories}
+            difficulties={difficulties}
+          />
+        </div>
+      </div>
+    </div>
   );
 }
