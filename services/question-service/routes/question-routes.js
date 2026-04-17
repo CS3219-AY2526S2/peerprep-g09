@@ -1,6 +1,10 @@
 import express from "express";
 import firebaseApp from "../config/firebase.js";
-import { verifyAdmin, verifyAuthenticated } from "../middleware/authMiddleware.js";
+import {
+  verifyAdmin,
+  verifyAuthenticated,
+  verifyInternalService,
+} from "../middleware/authMiddleware.js";
 import QuestionValidator from "../utils/validation.js";
 import sampleQuestions from "../sample_data/sampleQuestions.js";
 import ALLOWED_DIFFICULTIES from "../constants/difficulties.js";
@@ -126,7 +130,19 @@ router.get("/editinfo/:id", verifyAdmin, async (req, res) => {
     }
 });
 
+router.get("/internal/:id", verifyInternalService, async (req, res) => {
+  try {
+    const doc = await questionsCollection.doc(req.params.id).get();
 
+    if (!doc.exists) {
+      return res.status(404).json({ error: "Question not found." });
+    }
+
+    res.status(200).json(mapQuestionDocument(doc));
+  } catch (error) {
+    res.status(500).json({ error: "Failed to fetch question." });
+  }
+});
 
 router.get("/random", async (req, res) => {
   try {

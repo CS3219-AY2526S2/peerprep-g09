@@ -1,13 +1,22 @@
 const socket = io();
 const roomId = window.location.pathname.split('/').pop();
 
+const urlParams = new URLSearchParams(window.location.search);
+const questionId = urlParams.get('questionId') || '';
+const fallbackData = {
+    title: 'Challenge Unavailable',
+    description: 'We encountered an error loading the question. Please try refreshing or re-matching.',
+    constraints: [],
+    examples: []
+};
+
 const statusLabel = document.getElementById('connection-status');
 
 // Handle connection UI
 socket.on('connect', () => {
     statusLabel.innerText = "Online";
     statusLabel.className = "status-online";
-    socket.emit('join-room', roomId);
+    socket.emit('join-room', roomId, questionId);
 });
 
 socket.on('disconnect', () => {
@@ -17,7 +26,7 @@ socket.on('disconnect', () => {
 
 require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs' }});
 
-require(['vs/editor/editor.main'], async function() {
+require(['vs/editor/editor.main'], function() {
     // Create the editor instance inside your #editor-container div
     const editor = monaco.editor.create(document.getElementById('editor-container'), {
         value: "// Start collaborating on PeerPrep G09!",
@@ -26,31 +35,27 @@ require(['vs/editor/editor.main'], async function() {
         automaticLayout: true // Ensures editor resizes with the panel
     });
 
-    const Y = await import('https://esm.sh/yjs');
-    const { WebsocketProvider } = await import('https://esm.sh/y-websocket');
-    const { MonacoBinding } = await import('https://esm.sh/y-monaco');
+    editor.onDidChangeModelContent((event) => {
+        // Only emit if the change was made by the user (not by a socket update)
+        if (!editor.isUpdatingFromRemote) {
+            const code = editor.getValue();
+            socket.emit('code-change', { roomId, code });
+        }
+    });
 
-    const ydoc = new Y.Doc();
-
-    const provider = new WebsocketProvider(
-        'ws://localhost:1234',
-        roomId,
-        ydoc
-    );
-
-    const ytext = ydoc.getText('monaco');
-
-    const binding = new MonacoBinding(
-        ytext,
-        editor.getModel(),
-        new Set([editor]),
-        provider.awareness
-    );
-
-    provider.on('status', (e) => console.log('[yjs status]', e.status));
+    socket.on('receive-code', (newCode) => {
+        const currentCode = editor.getValue();
+        if (newCode !== currentCode) {
+            // Use a flag to prevent infinite loops of emitting/receiving
+            editor.isUpdatingFromRemote = true;
+            editor.setValue(newCode);
+            editor.isUpdatingFromRemote = false;
+        }
+    });
 });
 
 socket.on('user-left', (message) => {
+    // You could update the statusLabel or use a toast notification
     statusLabel.innerText = "online";
     statusLabel.className = "status-offline";
     
@@ -81,10 +86,12 @@ function startCountdown(durationMs) {
     timerInterval = setInterval(() => {
         timeLeft -= 1000;
 
+        // 1-minute warning (60 seconds)
         if (timeLeft <= 60000 && timeLeft > 59000) {
             showWarning("Warning: 1 minute remaining before session ends!");
         }
 
+        // Timer finished
         if (timeLeft <= 0) {
             clearInterval(timerInterval);
             terminateMeeting();
@@ -127,33 +134,16 @@ socket.on('user-count-update', (count) => {
     }
 });
 
-async function loadQuestionData(questionId) {
-    if (questionId) {
-        try {
-            // We fetch from the Question Service (Port 8081)
-            const response = await fetch(`http://localhost:8081/api/questions/${questionId}`);
-            
-            if (response.ok) {
-                const data = await response.json();
-                // Ensure renderContent uses the mapped data from the service
-                return renderContent(data);
-            } else {
-                console.error("Question Service returned an error status:", response.status);
-            }
-        } catch (error) {
-            console.error("Error fetching from Question Service:", error);
-        }
-    }
+document.addEventListener('DOMContentLoaded', () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const question = urlParams.get('questionId');
 
-    // Fallback if service is down, ID is missing, or fetch fails
-    const fallbackData = {
-        title: 'Challenge Unavailable', 
-        description: 'We encountered an error loading the question. Please try refreshing or re-matching.', 
-        constraints: [], 
-        examples: []
-    };
-    renderContent(fallbackData);
-}
+    console.log("Full Search String:", window.location.search); 
+    
+    if (question) {
+        console.log("Fetching data for:", question);
+    }
+});
 
 function renderContent(data) {
     if (!data) return;
@@ -184,8 +174,9 @@ function renderContent(data) {
 }
 
 socket.on('init-room-data', (data) => {
-    if (data.questionId) {
-        console.log("Got ID from server, fetching details...");
-        loadQuestionData(data.questionId); // NOW you fetch
+    if (data.question) {
+        renderContent(data.question);
+    } else {
+        renderContent(fallbackData);
     }
 });
