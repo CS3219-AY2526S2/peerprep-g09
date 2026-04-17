@@ -31,16 +31,8 @@ app.use(
 );
 // Protected Route
 app.use(
-  [
-    "/api/users/update-password",
-    "/api/users/delete-account",
-    "/api/users/update-displayName",
-    "/api/users/oAuth-Login",
-    "/api/users/update-profilePic",
-    "/api/users/update-progress",
-    "/api/users/get-stats",
-  ],
-  verifyToken,
+  ["/api/users/update-password","/api/users/delete-account","/api/users/update-displayName","/api/users/oAuth-Login","/api/users/update-profilePic","/api/users/update-progress","/api/users/get-stats", "/api/users/get-profile"],
+  verifyToken, 
   createProxyMiddleware({
     target: USER_SERVICE,
     changeOrigin: true,
@@ -65,23 +57,19 @@ app.use(
   createProxyMiddleware({
     target: MATCHING_SERVICE,
     changeOrigin: true,
-    pathRewrite: {
-      "^/api/matching": "",
-    },
+    pathRewrite: { "^/api/matching": "" },
   }),
 );
 
 // WebSocket for Socket.io
-app.use(
-  "/matching-socket",
-  verifyToken,
-  createProxyMiddleware({
-    target: MATCHING_SERVICE,
-    changeOrigin: true,
-    ws: true,
-    pathRewrite: { "^/matching-socket": "/socket.io" },
-  }),
-);
+const socketIoProxy = createProxyMiddleware({
+  target: MATCHING_SERVICE,
+  changeOrigin: true,
+  ws: true,
+  logLevel: "debug",
+});
+
+app.use("/socket.io", socketIoProxy);
 
 // =============== Question Service ===============
 // Public metadata endpoints (no auth required) - MUST BE FIRST
