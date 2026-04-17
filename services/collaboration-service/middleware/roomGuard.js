@@ -1,8 +1,15 @@
 import { getSession, isParticipant } from '../sessionStore.js';
 
 const roomGuard = (req, res, next) => {
-    const roomId = req.params.roomid || req.body.roomId || req.query.roomId;
-    const userId = req.body.userId || req.query.userId;
+    const roomId =
+        req.params?.roomid ||
+        req.query?.roomId ||
+        req.body?.roomId ||
+        null;
+    const userId =
+        req.query?.userId ||
+        req.body?.userId ||
+        null;
 
     if (!roomId) {
         return res.status(400).json({ message: "No Room ID provided." });
