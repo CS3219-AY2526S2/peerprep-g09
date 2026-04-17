@@ -91,6 +91,9 @@ const clearTimer = (timerMap, roomId) => {
 
 const notifyUserService = async (session) => {
     if (!session?.questionId || session.notifiedAt) {
+        if (!session?.questionId) {
+            console.warn(`[SESSION SYNC SKIPPED] Room ${session?.sessionId || 'unknown'} has no questionId.`);
+        }
         return;
     }
 
@@ -128,6 +131,9 @@ const notifyUserService = async (session) => {
     );
 
     markSessionNotified(session.sessionId);
+    console.log(
+        `[SESSION SYNC OK] Room ${session.sessionId}: updated progress for ${session.participants.join(', ')}.`,
+    );
 };
 
 const finalizeSession = async (roomId, reason = 'completed') => {
@@ -138,6 +144,8 @@ const finalizeSession = async (roomId, reason = 'completed') => {
     if (!session) {
         return;
     }
+
+    console.log(`[SESSION FINALIZED] Room ${roomId}: reason=${reason}`);
 
     try {
         if (!session.notifiedAt) {

@@ -1,26 +1,45 @@
-import { QuestionPanel } from "./question-panel";
-import { IDEArea } from "./ide-area";
-import { TerminalArea } from "./terminal-area";
+"use client";
+
+import { useEffect } from "react";
+import { useSearchParams } from "next/navigation";
+
+const COLLABORATION_SERVICE_URL =
+  process.env.NEXT_PUBLIC_COLLABORATION_URL || "http://localhost:8084";
 
 export default function CollaborationPage() {
-  return (
-    <div className="flex h-full w-full gap-4 p-4">
-      {/* Left Side: Question Panel */}
-      <div className="w-1/3 overflow-y-auto">
-        <QuestionPanel />
+  const searchParams = useSearchParams();
+  const roomId = searchParams.get("room");
+
+  useEffect(() => {
+    if (!roomId) {
+      return;
+    }
+
+    window.location.replace(
+      `${COLLABORATION_SERVICE_URL}/collab/${encodeURIComponent(roomId)}`,
+    );
+  }, [roomId]);
+
+  if (!roomId) {
+    return (
+      <div className="flex h-full min-h-[50vh] items-center justify-center p-6 text-center">
+        <div className="space-y-2">
+          <h1 className="text-xl font-semibold">Missing Collaboration Room</h1>
+          <p className="text-sm text-muted-foreground">
+            No room ID was provided. Start matchmaking again from the lobby.
+          </p>
+        </div>
       </div>
+    );
+  }
 
-      {/* Right Side: IDE and Terminal */}
-      <div className="flex w-2/3 flex-col gap-4">
-        {/* Top: IDE Area */}
-        <div className="flex-1">
-          <IDEArea />
-        </div>
-
-        {/* Bottom: Terminal */}
-        <div className="h-40 shrink-0">
-          <TerminalArea />
-        </div>
+  return (
+    <div className="flex h-full min-h-[50vh] items-center justify-center p-6 text-center">
+      <div className="space-y-2">
+        <h1 className="text-xl font-semibold">Joining Collaboration Room</h1>
+        <p className="text-sm text-muted-foreground">
+          Redirecting you to the live collaborative workspace...
+        </p>
       </div>
     </div>
   );
