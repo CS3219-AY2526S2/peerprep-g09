@@ -6,36 +6,38 @@ const QUESTION_SERVICE_URL =
   process.env.QUESTION_SERVICE_URL || "http://localhost:8081";
 export const PREDEFINED_TOPICS = new Set<string>();
 export const PREDEFINED_DIFFICULTIES = new Set<string>();
+const METADATA_REQUEST_TIMEOUT_MS = Number(
+  process.env.METADATA_REQUEST_TIMEOUT_MS || 5000,
+);
 
 export const initializeMetadata = async () => {
-  try {
-    console.log("Fetching topics and difficulties from Question Service...");
+  console.log("Fetching topics and difficulties from Question Service...");
 
-    const difficultyResponse = await axios.get(
-      `${QUESTION_SERVICE_URL}/api/questions/metadata/difficulties`,
-    );
-    const { difficulties } = difficultyResponse.data;
+  const difficultyResponse = await axios.get(
+    `${QUESTION_SERVICE_URL}/api/questions/metadata/difficulties`,
+    { timeout: METADATA_REQUEST_TIMEOUT_MS },
+  );
+  const { difficulties } = difficultyResponse.data;
 
-    const topicResponse = await axios.get(
-      `${QUESTION_SERVICE_URL}/api/questions/metadata/topics`,
-    );
-    const { topics } = topicResponse.data;
+  const topicResponse = await axios.get(
+    `${QUESTION_SERVICE_URL}/api/questions/metadata/topics`,
+    { timeout: METADATA_REQUEST_TIMEOUT_MS },
+  );
+  const { topics } = topicResponse.data;
 
-    PREDEFINED_DIFFICULTIES.clear();
-    difficulties.forEach((d: string) => PREDEFINED_DIFFICULTIES.add(d));
-
-    PREDEFINED_TOPICS.clear();
-    topics.forEach((t: string) => PREDEFINED_TOPICS.add(t));
-
-    console.log(
-      `Initialized ${PREDEFINED_TOPICS.size} topics and ${PREDEFINED_DIFFICULTIES.size} difficulties.`,
-    );
-  } catch (error) {
-    console.error("Failed to initialize matching metadata:", error);
-    // Optional: Set some hardcoded defaults so the service doesn't break entirely
-    ["Easy", "Medium", "Hard"].forEach((d) => PREDEFINED_DIFFICULTIES.add(d));
-    ["Algorithms", "Data Structures"].forEach((t) => PREDEFINED_TOPICS.add(t));
+  if (!Array.isArray(difficulties) || !Array.isArray(topics)) {
+    throw new Error("Question Service metadata response is invalid.");
   }
+
+  PREDEFINED_DIFFICULTIES.clear();
+  difficulties.forEach((d: string) => PREDEFINED_DIFFICULTIES.add(d));
+
+  PREDEFINED_TOPICS.clear();
+  topics.forEach((t: string) => PREDEFINED_TOPICS.add(t));
+
+  console.log(
+    `Initialized ${PREDEFINED_TOPICS.size} topics and ${PREDEFINED_DIFFICULTIES.size} difficulties.`,
+  );
 };
 
 export async function getQueueStatus(req: Request, res: Response) {

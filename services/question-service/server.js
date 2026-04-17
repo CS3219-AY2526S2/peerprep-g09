@@ -15,6 +15,6 @@ app.get("/health", (req, res) => {
 
 app.use("/api/questions", questionRoutes);
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`Question service listening on port ${PORT}`);
 });

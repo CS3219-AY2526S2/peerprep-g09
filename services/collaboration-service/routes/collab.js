@@ -10,7 +10,7 @@ const __dirname = path.dirname(__filename);
 
 router.use(express.json())
 
-router.get('/:roomid', (req, res) => {
+router.get('/:roomid', roomGuard, (req, res) => {
     res.status(200).sendFile(path.join(__dirname, '..', 'frontend', 'index.html'));
 });
 

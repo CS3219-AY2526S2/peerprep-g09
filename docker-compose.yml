@@ -21,9 +21,12 @@ services:
     environment:
       - REDIS_URL=redis://redis:6379
       - QUESTION_SERVICE_URL=http://question-service:8081 # Adjust if needed
+      - COLLABORATION_SERVICE_URL=http://collaboration-service:8084
+      - INTERNAL_SERVICE_KEY=${INTERNAL_SERVICE_KEY:-peerprep-dev-internal-key}
     depends_on:
       - redis
       - question-service
+      - collaboration-service
 
   # 4. Collaboration Service
   collaboration-service:
@@ -32,9 +35,11 @@ services:
       - "8084:8084"
     environment:
       - QUESTION_SERVICE_URL=http://question-service:8081
+      - USER_SERVICE_URL=http://user-service:8080
       - INTERNAL_SERVICE_KEY=${INTERNAL_SERVICE_KEY:-peerprep-dev-internal-key}
     depends_on:
       - question-service
+      - user-service
   # 5. User Service
   user-service:
     build: 
@@ -45,6 +50,7 @@ services:
       - /usr/src/app/node_modules 
     environment:
       - NODE_ENV=development
+      - INTERNAL_SERVICE_KEY=${INTERNAL_SERVICE_KEY:-peerprep-dev-internal-key}
       - RESEND_API_KEY=${RESEND_API_KEY}
       - EMAIL_USER=${EMAIL_USER}
       - TEST_RECIPIENT_EMAIL=${TEST_RECIPIENT_EMAIL}

@@ -2,7 +2,6 @@ const socket = io();
 const roomId = window.location.pathname.split('/').pop();
 
 const urlParams = new URLSearchParams(window.location.search);
-const questionId = urlParams.get('questionId') || '';
 const fallbackData = {
     title: 'Challenge Unavailable',
     description: 'We encountered an error loading the question. Please try refreshing or re-matching.',
@@ -16,12 +15,17 @@ const statusLabel = document.getElementById('connection-status');
 socket.on('connect', () => {
     statusLabel.innerText = "Online";
     statusLabel.className = "status-online";
-    socket.emit('join-room', roomId, questionId);
+    socket.emit('join-room', roomId);
 });
 
 socket.on('disconnect', () => {
     statusLabel.innerText = "Offline";
     statusLabel.className = "status-offline";
+});
+
+socket.on('session-error', (payload) => {
+    alert(payload?.message || "Unable to join collaboration room.");
+    window.location.href = "/";
 });
 
 require.config({ paths: { 'vs': 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.45.0/min/vs' }});
@@ -68,6 +72,7 @@ socket.on('user-left', (message) => {
 // triggering the server logic above.
 document.getElementById('exit-btn').addEventListener('click', () => {
     if (confirm("Are you sure you want to leave the workspace?")) {
+        socket.emit('leave-room', roomId);
         window.location.href = "/";
     }
 });
@@ -179,4 +184,13 @@ socket.on('init-room-data', (data) => {
     } else {
         renderContent(fallbackData);
     }
+});
+
+socket.on('room-destroyed', () => {
+    alert("Session ended. Redirecting...");
+    window.location.href = "/";
+});
+
+socket.on('session-sync-error', (payload) => {
+    console.error(payload?.message || "Session sync failed.");
 });

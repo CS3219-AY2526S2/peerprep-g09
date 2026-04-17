@@ -11,4 +11,4 @@ RUN npm run build
 
 EXPOSE 8082
 
-CMD ["npm", "start", "dev"]
+CMD ["npm", "start"]

@@ -14,6 +14,9 @@ import { initializeMetadata } from "./controllers/rest-controller.js";
 const app = express();
 const server = createServer(app);
 const PORT = process.env.PORT || 8082;
+const METADATA_INIT_RETRY_DELAY_MS = Number(
+  process.env.METADATA_INIT_RETRY_DELAY_MS || 3000,
+);
 
 // MIDDLEWARE SETUP
 app.use(express.urlencoded({ extended: true }));
@@ -75,9 +78,20 @@ io.on("connection", (socket) => {
 });
 
 const startServer = async () => {
-  // dirty workaround to ensure Question Service is up before fetching metadata
-  await new Promise(resolve => setTimeout(resolve, 5000));
-  await initializeMetadata();
+  while (true) {
+    try {
+      await initializeMetadata();
+      break;
+    } catch (error) {
+      console.error(
+        "Matching metadata initialization failed. Retrying...",
+        error,
+      );
+      await new Promise((resolve) =>
+        setTimeout(resolve, METADATA_INIT_RETRY_DELAY_MS),
+      );
+    }
+  }
 
   server.listen(PORT, () => {
     console.log(`Server is listening on port ${PORT}`);

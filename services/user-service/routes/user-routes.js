@@ -2,6 +2,7 @@ import express from 'express';
 import 'dotenv/config';
 import firebaseApp from '../config/firebase.js';
 import Validator from '../utils/validation.js';
+import { verifyInternalService } from '../middleware/internalAuth.js';
 import nodemailer from 'nodemailer';
 import multer from 'multer';
 import admin from 'firebase-admin';
@@ -22,6 +23,79 @@ const transporter = nodemailer.createTransport({
     pass: process.env.RESEND_API_KEY, 
   },
 });
+
+const buildProgressUpdatePayload = ({ questionDifficulty, questionTopics }) => {
+    const normalizedDifficulty =
+        String(questionDifficulty || "Unknown").trim() || "Unknown";
+    const normalizedTopics = Array.isArray(questionTopics)
+        ? questionTopics
+            .map((topic) => String(topic || "").trim())
+            .filter(Boolean)
+        : [];
+
+    return {
+        difficulty: normalizedDifficulty,
+        topics: normalizedTopics,
+    };
+};
+
+const updateProgressForUser = async ({
+    uid,
+    questionId,
+    questionDifficulty,
+    questionTopics,
+}) => {
+    if (!uid) {
+        const error = new Error("User ID is required.");
+        error.statusCode = 400;
+        throw error;
+    }
+
+    if (!questionId) {
+        const error = new Error("Question ID is required.");
+        error.statusCode = 400;
+        throw error;
+    }
+
+    const { difficulty, topics } = buildProgressUpdatePayload({
+        questionDifficulty,
+        questionTopics,
+    });
+
+    const userRef = firebaseApp.db.collection('users').doc(uid);
+    const progressRef = userRef.collection('QuestionsAttempted').doc(String(questionId));
+    const docSnapshot = await progressRef.get();
+
+    if (docSnapshot.exists) {
+        return {
+            alreadyRecorded: true,
+            message: "Progress already updated for this question.",
+        };
+    }
+
+    await progressRef.set({
+        questionId: String(questionId),
+        difficulty,
+        topics,
+        completedAt: FieldValue.serverTimestamp()
+    });
+
+    const statsUpdate = {
+        totalAttempted: FieldValue.increment(1),
+        [`stats.difficulty.${difficulty}`]: FieldValue.increment(1)
+    };
+
+    topics.forEach((topic) => {
+        statsUpdate[`stats.category.${topic}`] = FieldValue.increment(1);
+    });
+
+    await userRef.update(statsUpdate);
+
+    return {
+        alreadyRecorded: false,
+        message: "Progress and stats updated for the first time",
+    };
+};
 
 router.patch('/update-profilePic', upload.single('image'), async (req, res) => {
     const userData = JSON.parse(req.headers['x-user-data']);
@@ -385,43 +459,39 @@ router.post('/update-progress', async (req, res) => {
         const userData = JSON.parse(req.headers['x-user-data']);
         const uid = userData.uid;
         const { questionId, questionDifficulty, questionTopics } = req.body;
-
-        if (!questionId) return res.status(400).json({ error: "Question ID is required." });
-
-        const userRef = firebaseApp.db.collection('users').doc(uid);
-        const progressRef = userRef.collection('QuestionsAttempted').doc(questionId);
-
-        const docSnapshot = await progressRef.get();
-        
-        if (docSnapshot.exists) {
-            return res.status(200).json({ message: "Progress already updated for this question." });
-        }
-
-        await progressRef.set({
+        const result = await updateProgressForUser({
+            uid,
             questionId,
-            difficulty: questionDifficulty || "Unknown",
-            topics: Array.isArray(questionTopics) ? questionTopics : [], 
-            completedAt: FieldValue.serverTimestamp()
+            questionDifficulty,
+            questionTopics,
         });
 
-        const statsUpdate = {
-            totalAttempted: FieldValue.increment(1),
-            [`stats.difficulty.${questionDifficulty}`]: FieldValue.increment(1)
-        };
-
-        if (Array.isArray(questionTopics)) {
-            questionTopics.forEach(topic => {
-                statsUpdate[`stats.category.${topic}`] = FieldValue.increment(1);
-            });
-        }
-
-        await userRef.update(statsUpdate);
-        
-        res.status(200).json({ message: "Progress and stats updated for the first time" });
+        res.status(200).json({ message: result.message });
 
     } catch (error) {
         console.error("Update Progress Error:", error);
-        res.status(500).json({ error: "Failed to update progress." });
+        res
+            .status(error.statusCode || 500)
+            .json({ error: error.message || "Failed to update progress." });
+    }
+});
+
+router.post('/internal/update-progress', verifyInternalService, async (req, res) => {
+    try {
+        const { uid, questionId, questionDifficulty, questionTopics } = req.body;
+        const result = await updateProgressForUser({
+            uid,
+            questionId,
+            questionDifficulty,
+            questionTopics,
+        });
+
+        res.status(200).json({ message: result.message });
+    } catch (error) {
+        console.error("Internal Update Progress Error:", error);
+        res
+            .status(error.statusCode || 500)
+            .json({ error: error.message || "Failed to update progress." });
     }
 });
 

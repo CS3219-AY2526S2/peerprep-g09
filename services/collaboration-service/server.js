@@ -1,22 +1,47 @@
 import "dotenv/config";
-import express from 'express'
-import path from 'path'
-import http from 'http'
-import {Server} from 'socket.io'
-import {fileURLToPath} from 'url';
+import express from 'express';
+import path from 'path';
+import http from 'http';
+import { Server } from 'socket.io';
+import { fileURLToPath } from 'url';
 
-import collabRouter from './routes/collab.js'
+import collabRouter from './routes/collab.js';
+import internalRouter from './routes/internal.js';
+import {
+    attachQuestion,
+    endSession,
+    getRemainingMs,
+    getSession,
+    markSessionNotified,
+    removeSession,
+    startSession,
+} from './sessionStore.js';
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server);
+const io = new Server(server, {
+    cors: {
+        origin: "*"
+    }
+});
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
+const QUESTION_SERVICE_URL =
+    process.env.QUESTION_SERVICE_URL || "http://question-service:8081";
+const USER_SERVICE_URL =
+    process.env.USER_SERVICE_URL || "http://user-service:8080";
+const ROOM_IDLE_GRACE_MS = Number(
+    process.env.SESSION_DISCONNECT_GRACE_MS || 15 * 1000
+);
+const SESSION_DESTROY_DELAY_MS = 500;
 
-// Middleware
+const sessionTimers = new Map();
+const idleTimers = new Map();
+
 app.use(express.json());
 
+app.use('/internal', internalRouter);
 app.use('/collab', collabRouter);
 
 app.get('/', (req, res) => {
@@ -25,10 +50,6 @@ app.get('/', (req, res) => {
 
 app.use(express.static(path.join(__dirname, 'frontend')));
 app.use('/config', express.static(path.join(__dirname, 'config')));
-
-const roomTimers = new Map()
-const QUESTION_SERVICE_URL =
-  process.env.QUESTION_SERVICE_URL || "http://question-service:8081";
 
 const fetchQuestionById = async (questionId) => {
     if (!questionId) {
@@ -48,94 +69,208 @@ const fetchQuestionById = async (questionId) => {
     return response.json();
 };
 
-// Global Socket Logic
+const getConnectedClientCount = (roomId) => {
+    const clients = io.sockets.adapter.rooms.get(roomId);
+    return clients ? clients.size : 0;
+};
+
+const updateUserCount = (roomId) => {
+    const count = getConnectedClientCount(roomId);
+    io.to(roomId).emit('user-count-update', count);
+    console.log(`[Server] Room ${roomId} now has ${count} user(s).`);
+    return count;
+};
+
+const clearTimer = (timerMap, roomId) => {
+    const timer = timerMap.get(roomId);
+    if (timer) {
+        clearTimeout(timer);
+        timerMap.delete(roomId);
+    }
+};
+
+const notifyUserService = async (session) => {
+    if (!session?.questionId || session.notifiedAt) {
+        return;
+    }
+
+    const questionDifficulty =
+        session.question?.difficulty || session.difficulty || "Unknown";
+    const questionTopics = Array.isArray(session.question?.topics)
+        ? session.question.topics
+        : session.topic
+            ? [session.topic]
+            : [];
+
+    await Promise.all(
+        session.participants.map(async (uid) => {
+            const response = await fetch(`${USER_SERVICE_URL}/api/users/internal/update-progress`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'x-internal-service-key': process.env.INTERNAL_SERVICE_KEY || "",
+                },
+                body: JSON.stringify({
+                    uid,
+                    questionId: session.questionId,
+                    questionDifficulty,
+                    questionTopics,
+                }),
+            });
+
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(
+                    `Failed to update progress for ${uid}: ${response.status} ${errorText}`,
+                );
+            }
+        }),
+    );
+
+    markSessionNotified(session.sessionId);
+};
+
+const finalizeSession = async (roomId, reason = 'completed') => {
+    clearTimer(sessionTimers, roomId);
+    clearTimer(idleTimers, roomId);
+
+    const { session } = endSession(roomId, reason);
+    if (!session) {
+        return;
+    }
+
+    try {
+        if (!session.notifiedAt) {
+            await notifyUserService(session);
+        }
+    } catch (error) {
+        console.error(`[SESSION SYNC FAILED] Room ${roomId}:`, error.message);
+        io.to(roomId).emit('session-sync-error', {
+            message: 'Session ended, but progress sync failed.',
+        });
+        return;
+    }
+
+    io.to(roomId).emit('room-destroyed');
+    setTimeout(() => removeSession(roomId), SESSION_DESTROY_DELAY_MS);
+};
+
+const scheduleSessionExpiry = (roomId) => {
+    clearTimer(sessionTimers, roomId);
+
+    const remainingMs = getRemainingMs(roomId);
+    const timer = setTimeout(() => {
+        sessionTimers.delete(roomId);
+        void finalizeSession(roomId, 'timeout');
+    }, Math.max(remainingMs, 0) + 250);
+
+    sessionTimers.set(roomId, timer);
+};
+
+const scheduleIdleCleanup = (roomId) => {
+    clearTimer(idleTimers, roomId);
+
+    const timer = setTimeout(() => {
+        idleTimers.delete(roomId);
+        if (getConnectedClientCount(roomId) === 0) {
+            void finalizeSession(roomId, 'ended');
+        }
+    }, ROOM_IDLE_GRACE_MS);
+
+    idleTimers.set(roomId, timer);
+};
+
 io.on('connection', (socket) => {
-    socket.on('join-room', async (roomId, questionId) => {
+    socket.on('join-room', async (payloadOrRoomId) => {
+        const roomId =
+            typeof payloadOrRoomId === 'object' && payloadOrRoomId !== null
+                ? String(payloadOrRoomId.roomId || payloadOrRoomId.sessionId || "").trim()
+                : String(payloadOrRoomId || "").trim();
+
+        if (!roomId) {
+            socket.emit('session-error', { message: 'Room ID is required.' });
+            return;
+        }
+
+        let session = getSession(roomId);
+        if (!session) {
+            socket.emit('session-error', { message: 'Session not found.' });
+            return;
+        }
+
         socket.join(roomId);
+        clearTimer(idleTimers, roomId);
 
-        if (!roomTimers.has(roomId)) {
-            const startTime = Date.now();
-            const duration = 2 * 60 * 1000; 
-            let question = null;
+        session = startSession(roomId);
 
+        if (!session.question && session.questionId) {
             try {
-                question = await fetchQuestionById(questionId);
+                const question = await fetchQuestionById(session.questionId);
+                session = attachQuestion(roomId, question);
             } catch (error) {
                 console.error(`[QUESTION FETCH FAILED] Room ${roomId}:`, error.message);
             }
-
-            // Store the timeout reference so we know it's active
-            const cleanupTask = setTimeout(() => {
-                if (roomTimers.has(roomId)) {
-                    roomTimers.delete(roomId);
-                    // Physical proof of destruction in server console
-                    console.log(`[RESOURCES RELEASED] Room ${roomId} destroyed. Memory cleared.`);
-                    
-                    // Tell any remaining users the room is officially dead
-                    io.to(roomId).emit('room-destroyed');
-                }
-            }, duration + 5000);
-
-            roomTimers.set(roomId, { startTime, duration, questionId, question, cleanupTask });
-            console.log(`[RESOURCES ALLOCATED] Room ${roomId} created.`);
-
         }
 
-        const roomData = roomTimers.get(roomId);
-
-        if (!roomData.question && roomData.questionId) {
-            try {
-                roomData.question = await fetchQuestionById(roomData.questionId);
-            } catch (error) {
-                console.error(`[QUESTION REFETCH FAILED] Room ${roomId}:`, error.message);
-            }
-        }
-
-        const currentTime = Date.now();
-        const elapsed = currentTime - roomData.startTime;
-        const remaining = Math.max(0, roomData.duration - elapsed);
+        scheduleSessionExpiry(roomId);
 
         socket.emit('init-room-data', {
-            questionId: roomData.questionId,
-            question: roomData.question || null,
+            roomId,
+            questionId: session?.questionId || null,
+            question: session?.question || null,
+            participants: session?.participants || [],
         });
 
-        socket.emit('timer-update', { 
-            remaining, 
-            // warning sent 1 minute before termination
-            isWarning: remaining <= 60 * 1000 && remaining > 0 
+        socket.emit('timer-update', {
+            remaining: getRemainingMs(roomId),
+            isWarning: getRemainingMs(roomId) <= 60 * 1000,
         });
 
         updateUserCount(roomId);
-
         socket.to(roomId).emit('user-joined', 'A collaborator has entered.');
     });
 
     socket.on('code-change', (data) => {
+        if (!data?.roomId) {
+            return;
+        }
+
         socket.to(data.roomId).emit('receive-code', data.code);
     });
 
-    // Handle the moment right before the user leaves
+    socket.on('leave-room', (roomId) => {
+        if (!roomId) {
+            return;
+        }
+
+        socket.leave(roomId);
+        socket.to(roomId).emit('user-left', 'The other collaborator has left the workspace.');
+
+        setTimeout(() => {
+            const remaining = updateUserCount(roomId);
+            if (remaining === 0) {
+                scheduleIdleCleanup(roomId);
+            }
+        }, 100);
+    });
+
     socket.on('disconnecting', () => {
-        // socket.rooms is a Set containing the socket ID and the room IDs
-        socket.rooms.forEach(room => {
-            if (room !== socket.id) {
-                setTimeout(() => updateUserCount(room), 100);
-                socket.to(room).emit('user-left', 'The other collaborator has left the workspace.');
+        socket.rooms.forEach((roomId) => {
+            if (roomId !== socket.id) {
+                socket.to(roomId).emit('user-left', 'The other collaborator has left the workspace.');
+
+                setTimeout(() => {
+                    const remaining = updateUserCount(roomId);
+                    if (remaining === 0) {
+                        scheduleIdleCleanup(roomId);
+                    }
+                }, 100);
             }
         });
     });
 });
 
-// Helper to broadcast user count to a room
-const updateUserCount = (roomId) => {
-    const clients = io.sockets.adapter.rooms.get(roomId);
-    const count = clients ? clients.size : 0;
-    io.to(roomId).emit('user-count-update', count);
-    console.log(`[Server] Room ${roomId} now has ${count} user(s).`);
-};
-
-const PORT = 8084
+const PORT = 8084;
 server.listen(PORT, () => {
     console.log('Server running on http://localhost:8084');
 });
